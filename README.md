@@ -35,9 +35,9 @@
     │   ├── api                        # 第一版 api
     │   │   ├── articleRouter.js
     │   │   ├── index.js               # router 進入點
-    │   │   ├── schemas
+    │   │   ├── schemas                # swagger.js 需要讀的資料們
     │   │   │   └── userSchema.yaml
-    │   │   ├── swagger.js
+    │   │   ├── swagger.js             # 讀 router 的註解產生符合 OpenAPI 規範的資料
     │   │   ├── trailRouter.js
     │   │   └── userRouter.js
     │   └── apiv2                      # 第二版 api placeholder
@@ -65,6 +65,8 @@ Node.js 的伺服器框架。
 
 [swagger-jsdoc](https://www.npmjs.com/package/swagger-jsdoc)：產生符合 [OpenAPI (Swagger) specification](https://swagger.io/specification/) 的文件。
 [swagger-ui-express](https://www.npmjs.com/package/swagger-ui-express)：用符合 OpenAPI 規範的文件產生 UI 介面。
+
+## 連結
 
 [WANDER MAP 說明書](https://hackmd.io/eD_eEfrGTy6BN5RsBHkjaw?view)
 
