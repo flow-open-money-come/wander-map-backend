@@ -24,13 +24,16 @@
 ├── README.md
 ├── node_modules
 ├── .env                              # 環境變數存放處
+├── .env.example                      # 環境變數的範例
 ├── .gitignore
 ├── package-lock.json
 ├── package.json
 └── src                                # 程式碼在此 ฅ•ω•ฅ
     ├── controllers
     ├── index.js                       # application server 進入點
+    ├── logger.js                      # 設定 logger
     ├── middlewares                    # 自訂的 middlewares
+    │   └── logRequest.js
     ├── routers                        # 路由們，底下的資料夾可區分 api 版本
     │   ├── api                        # 第一版 api
     │   │   ├── articleRouter.js

@@ -1,6 +1,7 @@
 const swaggerUi = require('swagger-ui-express')
-const swaggerDocument = require('./swagger')
 const apiRouter = require('express').Router()
+
+const swaggerDocument = require('./swagger')
 const userRouter = require('./userRouter')
 const articleRouter = require('./articleRouter')
 const trailRouter = require('./trailRouter')
@@ -12,7 +13,7 @@ apiRouter.use('/articles', articleRouter)
 apiRouter.use('/trails', trailRouter)
 
 apiRouter.all('*', (req, res) => {
-  res.json('here is api all')
+  res.redirect(301, '/test')
 })
 
 module.exports = apiRouter

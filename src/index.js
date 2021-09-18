@@ -1,31 +1,39 @@
 require('dotenv').config()
+
 const express = require('express')
 const apiRouter = require('./routers/api')
 // const apiv2Router = require('./routers/apiv2')
-const { getResponseObject } = require('./utils')
+const logRequest = require('./middlewares/logRequest')
 
 const app = express()
 const PORT = process.env.APP_SERVER_PORT || 8888
 
 app.use(express.json())
-app.use(express.urlencoded({extended: true}))
+app.use(express.urlencoded({ extended: true }))
 
 app.use('/api/v1', apiRouter)
-app.use('/api/v2', (req, res) => res.json('apiv2 is not ready.'))
+// app.use('/api/v2', (req, res) => res.json('apiv2 is not ready.'))
 
-app.all('*', (req, res) => {
+app.all('*', logRequest, (req, res) => {
   res.json('here is all')
 })
 
 app.use((err, req, res, next) => {
-  let msg = `something is broke ${err.message}`
+  let msg = `something broke in server: ${err.message}`
   let status = 500
-  if (err.statusCode === 400) {
-    msg = `input format invalid`
-    status = err.statusCode
+
+  // request header Content-Type 是 application/json，但 body 不是 json 格式時發生的錯誤
+  if (req.is('application/json') && err instanceof SyntaxError && err.statusCode === 400 && 'body' in err) {
+    msg = `Input instances are not in JSON format.`
+    status = 400
   }
+  
   console.error(err)
-  res.status(status).json(getResponseObject(status, msg))
+  res.status(status).json({
+    success: false,
+    message: msg,
+    data: {}
+  })
 })
 
 app.listen(PORT, () => {
