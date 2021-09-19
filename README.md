@@ -23,8 +23,8 @@
 ├── LICENSE
 ├── README.md
 ├── node_modules
-├── .env                              # 環境變數存放處
-├── .env.example                      # 環境變數的範例
+├── .env                               # 環境變數存放處
+├── .env.example                       # 環境變數的範例
 ├── .gitignore
 ├── package-lock.json
 ├── package.json
@@ -66,8 +66,13 @@ Node.js 的伺服器框架。
 
 產生 API 測試頁面。
 
-[swagger-jsdoc](https://www.npmjs.com/package/swagger-jsdoc)：產生符合 [OpenAPI (Swagger) specification](https://swagger.io/specification/) 的文件。
+[swagger-jsdoc](https://www.npmjs.com/package/swagger-jsdoc)：產生符合 [OpenAPI (Swagger) specification](https://swagger.io/specification/) 的文件。  
 [swagger-ui-express](https://www.npmjs.com/package/swagger-ui-express)：用符合 OpenAPI 規範的文件產生 UI 介面。
+
+### winston
+
+[winston](https://www.npmjs.com/package/winston)： logger library  
+[winston-daily-rotate-file](https://www.npmjs.com/package/winston-daily-rotate-file)：log rotation
 
 ## 連結
 

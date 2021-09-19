@@ -12,6 +12,7 @@ const logRequest = (req, res, next) => {
     statusCode,
     referrer
   })
+
   next()
 }
 

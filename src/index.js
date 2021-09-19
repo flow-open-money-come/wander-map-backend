@@ -4,17 +4,19 @@ const express = require('express')
 const apiRouter = require('./routers/api')
 // const apiv2Router = require('./routers/apiv2')
 const logRequest = require('./middlewares/logRequest')
+const { generalLogger } = require('./logger')
 
 const app = express()
 const PORT = process.env.APP_SERVER_PORT || 8888
 
+app.use(logRequest)
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.use('/api/v1', apiRouter)
 // app.use('/api/v2', (req, res) => res.json('apiv2 is not ready.'))
 
-app.all('*', logRequest, (req, res) => {
+app.all('*', (req, res, next) => {
   res.json('here is all')
 })
 
@@ -28,7 +30,7 @@ app.use((err, req, res, next) => {
     status = 400
   }
   
-  console.error(err)
+  generalLogger.error(err)
   res.status(status).json({
     success: false,
     message: msg,
