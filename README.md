@@ -23,23 +23,29 @@
 ├── LICENSE
 ├── README.md
 ├── node_modules
-├── .env                              # 環境變數存放處
+├── .env                               # 環境變數存放處
+├── .env.example                       # 環境變數的範例
 ├── .gitignore
 ├── package-lock.json
 ├── package.json
-└── src                               # 程式碼在此 ฅ•ω•ฅ
+└── src                                # 程式碼在此 ฅ•ω•ฅ
     ├── controllers
-    ├── index.js                      # application server 入口點
-    ├── utils.js                      # 重複利用的函式們
-    ├── middlewares                   # 自訂的 middlewares
-    └── routers                       # 路由們，底下的資料夾可區分 api 版本
-        ├── api                       # 第一版 api
-        │   ├── articleRouter.js
-        │   ├── index.js              # router 進入點
-        │   ├── trailRouter.js
-        │   └── userRouter.js
-        └── apiv2                     # 第二版 api placeholder
-            └── index.js
+    ├── index.js                       # application server 進入點
+    ├── logger.js                      # 設定 logger
+    ├── middlewares                    # 自訂的 middlewares
+    │   └── logRequest.js
+    ├── routers                        # 路由們，底下的資料夾可區分 api 版本
+    │   ├── api                        # 第一版 api
+    │   │   ├── articleRouter.js
+    │   │   ├── index.js               # router 進入點
+    │   │   ├── schemas                # swagger.js 需要讀的資料們
+    │   │   │   └── userSchema.yaml
+    │   │   ├── swagger.js             # 讀 router 的註解產生符合 OpenAPI 規範的資料
+    │   │   ├── trailRouter.js
+    │   │   └── userRouter.js
+    │   └── apiv2                      # 第二版 api placeholder
+    │       └── index.js
+    └── utils.js                       # 可重複利用的函式們
 ```
 
 ## 使用的套件庫
@@ -55,6 +61,20 @@ Node.js 的伺服器框架。
 ### [nodemon](https://nodemon.io/)
 
 測試用套件，在程式碼改動時自動重啟應用程式。
+
+### swagger
+
+產生 API 測試頁面。
+
+[swagger-jsdoc](https://www.npmjs.com/package/swagger-jsdoc)：產生符合 [OpenAPI (Swagger) specification](https://swagger.io/specification/) 的文件。  
+[swagger-ui-express](https://www.npmjs.com/package/swagger-ui-express)：用符合 OpenAPI 規範的文件產生 UI 介面。
+
+### winston
+
+[winston](https://www.npmjs.com/package/winston)： logger library  
+[winston-daily-rotate-file](https://www.npmjs.com/package/winston-daily-rotate-file)：log rotation
+
+## 連結
 
 [WANDER MAP 說明書](https://hackmd.io/eD_eEfrGTy6BN5RsBHkjaw?view)
 
