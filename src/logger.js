@@ -57,9 +57,13 @@ const requestLogger = createLogger({
   format: combine(
     appLabel,
     timestamp(),
+    errors({ stack: true }),
     requestFormat
   ),
-  transports: [combinedRotateTransport]
+  transports: [
+    combinedRotateTransport,
+    errorRotateTransport
+  ]
 })
 
 if (process.env.NODE_ENV !== 'production') {
