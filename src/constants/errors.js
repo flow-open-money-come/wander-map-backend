@@ -11,7 +11,12 @@ const errors = {
   },
   UNAUTHORIZED: {
     success: false,
-    message: 'valid access token needed',
+    message: 'access token needed || incorrect email/password',
+    data: {}
+  },
+  FORBIDDEN_ACTION: {
+    success: false,
+    message: 'you have no permission to access',
     data: {}
   }
 }
