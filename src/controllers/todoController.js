@@ -1,13 +1,10 @@
 const todoModel = require('../models/todoModel')
-const userModel = require('../models/userModel')
 const { INVALID_INPUT, FORBIDDEN_ACTION } = require('../constants/errors')
 
 async function checkTodoPermission({ tokenPayload, todo_id, user_id }) {
   const todoOwnerId = user_id || (await todoModel.getTodoOwner(todo_id))[0].user_id
-  const authUserId = tokenPayload.user_id
-  const authUserRole = tokenPayload.role
 
-  if (authUserId !== todoOwnerId && authUserRole !== 'admin') return false
+  if (tokenPayload.user_id !== todoOwnerId && tokenPayload.role !== 'admin') return false
   return true
 }
 
@@ -74,7 +71,6 @@ const todoController = {
     }
   },
 
-  // 權限檢查
   deleteTodo: async(req, res, next) => {
     const { user_id, todo_id } = req.params
 

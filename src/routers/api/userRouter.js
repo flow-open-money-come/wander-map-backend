@@ -124,15 +124,10 @@ userRouter.get('/testAuth', auth, (req, res) => res.json('auth success!!'))
 userRouter.get('/', userController.getUsers)
 
 userRouter.get('/:user_id', handleParams, userController.getUser)
-
-userRouter.patch('/:user_id', auth, userController.editUser)
-
+userRouter.patch('/:user_id', auth, handleParams, userController.editUser)
 userRouter.get('/:user_id/todos', handleParams, todoController.getTodos)
-
 userRouter.post('/:user_id/todos', auth, handleParams, todoController.postTodo)
-
 userRouter.patch('/:user_id/todos/:todo_id', auth, handleParams, todoController.updateTodo)
-
 userRouter.delete('/:user_id/todos/:todo_id', auth, handleParams, todoController.deleteTodo)
 
 // userRouter.get('/:user_id/articles', (req, res, next) => res.json('articles'))

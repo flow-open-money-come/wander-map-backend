@@ -6,18 +6,22 @@ const errors = {
   },
   INVALID_INPUT: {
     success: false,
-    message: 'invalid input', // email 已存在，或是兩個密碼不同
+    message: 'invalid input',
     data: {}
   },
   UNAUTHORIZED: {
     success: false,
-    message: 'access token needed || incorrect email/password',
+    message: 'access token needed',
     data: {}
   },
   FORBIDDEN_ACTION: {
     success: false,
     message: 'you have no permission to access',
     data: {}
+  },
+  DUPLICATE_EMAIL: {
+    success: false,
+    message: 'The email address is already registered'
   }
 }
 
