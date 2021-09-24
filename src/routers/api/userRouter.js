@@ -131,8 +131,10 @@ userRouter.get('/:user_id/todos', handleParams, todoController.getTodos)
 
 userRouter.post('/:user_id/todos', auth, handleParams, todoController.postTodo)
 
-userRouter.patch('/:user_id/todos/:todo_id', (req, res, next) => res.json('/:id/todos'))
-userRouter.delete('/:user_id/todos/:todo_id', (req, res, next) => res.json('delete_todo'))
+userRouter.patch('/:user_id/todos/:todo_id', auth, handleParams, todoController.updateTodo)
+
+userRouter.delete('/:user_id/todos/:todo_id', auth, handleParams, todoController.deleteTodo)
+
 // userRouter.get('/:user_id/articles', (req, res, next) => res.json('articles'))
 // userRouter.patch('/:user_id/articles/:article_id', (req, res, next) => res.json('like/unlike'))
 // userRouter.get('/:user_id/trails', (req, res, next) => res.json('trails'))

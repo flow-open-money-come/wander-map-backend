@@ -9,6 +9,9 @@ const saltRounds = 10
 const tokenSecret = process.env.JWT_TOKEN_SECRET
 
 const userController = {
+  // 還有什麼輸入限制？
+  // 密碼長度與組合
+  // 檢查 email 格式
   register: async(req, res, next) => {
     const { nickname, email, password, confirmPassword } = req.body
     const isNull = Object.values({ nickname, email, password, confirmPassword }).some((value) => !value && value !== 0)
@@ -16,6 +19,7 @@ const userController = {
 
     try {
       let users = await userModel.findOne({ where: { email } })
+      // email 已被註冊要回什麼
       if (users.length !== 0) return res.status(400).json(INVALID_INPUT)
 
       const hash = await bcrypt.hash(password, saltRounds)
