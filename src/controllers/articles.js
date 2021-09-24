@@ -14,7 +14,12 @@ const articleController = {
       }
     }
     articleModel.add(article, (err, results) => {
-      if (err) return console.log(err)
+      if (err) return (
+        res.json({
+          success: false,
+          message: err,
+        })
+      )
       res.json({
         success: true,
         message: "OK",
@@ -25,7 +30,12 @@ const articleController = {
 
   getArticles: (req, res) => {
     articleModel.findAll((err, results) => {
-      if (err) return console.log(err)
+      if (err) return (
+        res.json({
+          success: false,
+          message: err,
+        })
+      )
       res.json({
         success: true,
         message: "OK",
@@ -36,7 +46,12 @@ const articleController = {
 
   getHotArticles: (req, res) => {
     articleModel.findByViews((err, results) => {
-      if (err) return console.log(err)
+      if (err) return (
+        res.json({
+          success: false,
+          message: err,
+        })
+      )
       res.json({
         success: true,
         message: "OK",
@@ -48,7 +63,12 @@ const articleController = {
   getArticle: (req, res) => {
     const { id } = req.params
     articleModel.findById(id, (err, results) => {
-      if (err) return console.log(err)
+      if (err) return (
+        res.json({
+          success: false,
+          message: err,
+        })
+      )
       res.json({
         success: true,
         message: "OK",
@@ -70,7 +90,12 @@ const articleController = {
       }
     }
     articleModel.update(id, article, (err, results) => {
-      if (err) return console.log(err)
+      if (err) return (
+        res.json({
+          success: false,
+          message: err,
+        })
+      )
       res.json({
         success: true,
         message: "OK",
@@ -82,7 +107,12 @@ const articleController = {
   deleteArticle: (req, res) => {
     const { id } = req.params
     articleModel.delete(id, (err, results) => {
-      if (err) return console.log(err)
+      if (err) return (
+        res.json({
+          success: false,
+          message: err,
+        })
+      )
       res.json({
         success: true,
         message: "OK",
@@ -94,7 +124,12 @@ const articleController = {
   getComments: (req, res) => {
     const { id } = req.params
     articleModel.findById(id, (err, results) => {
-      if (err) return console.log(err)
+      if (err) return (
+        res.json({
+          success: false,
+          message: err,
+        })
+      )
       const author = results[0].author_id
       articleModel.findCommentsById(id, author, (err, results) => {
         if (err) return console.log(err)
