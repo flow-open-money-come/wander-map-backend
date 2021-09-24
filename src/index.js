@@ -5,6 +5,7 @@ const apiRouter = require('./routers/api')
 // const apiv2Router = require('./routers/apiv2')
 const logRequest = require('./middlewares/logRequest')
 const { generalLogger } = require('./logger')
+const { PATH_ERROR } = require('./constants/errors')
 
 const app = express()
 const PORT = process.env.APP_SERVER_PORT || 8888
@@ -17,7 +18,7 @@ app.use('/api/v1', apiRouter)
 // app.use('/api/v2', (req, res) => res.json('apiv2 is not ready.'))
 
 app.all('*', (req, res, next) => {
-  res.json('here is all')
+  res.status(404).json(PATH_ERROR)
 })
 
 app.use((err, req, res, next) => {

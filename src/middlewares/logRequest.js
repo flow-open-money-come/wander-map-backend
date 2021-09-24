@@ -4,7 +4,7 @@ const logRequest = (req, res, next) => {
   const { ip, method, originalUrl, httpVersion } = req
   const { statusCode } = res
   const referrer = req.get('referrer')
-  logger.info('Request', {
+  logger.http('Request', {
     ip,
     method,
     originalUrl,

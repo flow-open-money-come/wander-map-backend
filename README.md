@@ -74,6 +74,18 @@ Node.js 的伺服器框架。
 [winston](https://www.npmjs.com/package/winston)： logger library  
 [winston-daily-rotate-file](https://www.npmjs.com/package/winston-daily-rotate-file)：log rotation
 
+### [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
+
+產生及認證 JWT 合法性。
+
+### [bcrypt](https://www.npmjs.com/package/bcrypt)
+
+將密碼雜湊。
+
+### [mysql2](https://www.npmjs.com/package/mysql2#history-and-why-mysql2)
+
+連線操作資料庫。
+
 ## 連結
 
 [WANDER MAP 說明書](https://hackmd.io/eD_eEfrGTy6BN5RsBHkjaw?view)

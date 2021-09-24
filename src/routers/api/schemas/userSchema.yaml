@@ -11,6 +11,7 @@ components:
         - nickname
         - email
         - password
+        - confirmPassword
       properties:
         nickname:
           type: string
@@ -22,10 +23,13 @@ components:
         password:
           type: string
           format: password
+        confirmPassword:
+          type: string
       example:
         name: totorai
         email: fake@email.com
         password: 123
+        confirmPassword: 123
     registerResponse:
       type: object
       properties:
@@ -36,32 +40,13 @@ components:
         data:
           type: object
           properties:
-            id:
-              type: integer
-            nickname:
+            token:
               type: string
-            email:
-              type: string
-              format: email
-              description: email for user
-            icon_picture:
-              type: string
-            updated_at:
-              type: string
-              format: date-time
-            created_at:
-              type: string
-              format: date-time
       example:
         success: true
         message: registration success
         data:
-          id: 1
-          nickname: Dylan
-          email: fake@email.com
-          icon_picture: https://example.com
-          updated_at: 2020-12-22 21:14:57
-          created_at: 2020-12-22 21:14:57
+          token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo2LCJuaWNrbmFtZSI6IkR5bGFuIiwiZW1haWwiOiJhYmNAZW1haWwuY29tIiwiaWNvbl91cmwiOm51bGwsInVwZGF0ZWRfYXQiOiIyMDIxLTA5LTIwVDIxOjI4OjMwLjAwMFoiLCJjcmVhdGVkX2F0IjoiMjAyMS0wOS0yMFQyMToyODozMC4wMDBaIiwiaWF0IjoxNjMyMjA1NjY0LCJleHAiOjE2MzQ3OTc2NjR9.AUbCQz4TBHg5QCjj37fsau6Vya9czdd4jGBiuxNf7wU
     login:
       type: object
       required:
@@ -98,3 +83,23 @@ components:
         success: true
         message: logged out
         data: {}
+    getAllUsers:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+      example:
+        success: true
+        message: user data
+        data:
+          user_id: 1
+          nickname: DDlyann
+          email: test@email.com
+          icon_url: null
+          role: admin
+          updated_at: "2021-09-20T20:52:20.000Z"
+          created_at: "2021-09-20T20:52:20.000Z"

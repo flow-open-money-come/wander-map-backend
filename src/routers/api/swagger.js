@@ -19,7 +19,7 @@ const options = {
       }
     ]
   },
-  // 相對於 Node.js 執行的地方，而不相對於是這隻程式本身
+  // 相對於 Node.js 執行的地方，而不是相對於這隻程式本身
   apis: ['./src/routers/api/*Router.js', './src/routers/api/schemas/*']
 }
 
