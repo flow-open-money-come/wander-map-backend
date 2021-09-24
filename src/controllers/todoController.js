@@ -30,7 +30,7 @@ const todoController = {
     const { content, is_done } = req.body
 
     try {
-      const { tokenPayload } = req.locals
+      const { tokenPayload } = res.locals
       const isValid = await checkTodoPermission({ tokenPayload, user_id })
       if (!isValid) return res.status(403).json(FORBIDDEN_ACTION)
 
@@ -60,7 +60,7 @@ const todoController = {
     }
 
     try {
-      const { tokenPayload } = req.locals
+      const { tokenPayload } = res.locals
       const isValid = await checkTodoPermission({ tokenPayload, todo_id })
       if (!isValid) return res.status(403).json(FORBIDDEN_ACTION)
 
@@ -75,7 +75,7 @@ const todoController = {
     const { user_id, todo_id } = req.params
 
     try {
-      const { tokenPayload } = req.locals
+      const { tokenPayload } = res.locals
       const isValid = await checkTodoPermission({ tokenPayload, todo_id })
       if (!isValid) return res.status(403).json(FORBIDDEN_ACTION)
 
