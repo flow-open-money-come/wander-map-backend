@@ -8,7 +8,7 @@ const { INVALID_INPUT, UNAUTHORIZED, FORBIDDEN_ACTION, DUPLICATE_EMAIL } = requi
 const saltRounds = 10
 const tokenSecret = process.env.JWT_TOKEN_SECRET
 
-async function checkUserPermission({ tokenPayload, user_id }) {
+async function getPermissionRole({ tokenPayload, user_id }) {
   const authUser = (await userModel.findOne({ where: { user_id: tokenPayload.user_id } }))[0]
   if (authUser.user_id !== user_id && authUser.role !== 'admin') return false
   return true
@@ -150,11 +150,11 @@ const userController = {
     let { nickname, icon_url, password, role } = req.body
 
     try {
-      const isValid = await checkUserPermission({ tokenPayload: res.locals.tokenPayload, user_id })
-      if (isValid) return res.status(403).json(FORBIDDEN_ACTION)
+      const authRole = await getPermissionRole({ tokenPayload: res.locals.tokenPayload, user_id })
+      if (!authRole) return res.status(403).json(FORBIDDEN_ACTION)
 
       const columns = { nickname, icon_url, password }
-      if (authUser.role === 'admin') {
+      if (authRole === 'admin') {
         const validValues = ['admin', 'member', 'suspended', 1, 2, 3]
         if (!validValues.includes(role)) return res.json(400).json(INVALID_INPUT)
         columns.role = role
