@@ -1,4 +1,4 @@
-const mysql = require('mysql2/promise')
+const mysql = require('mysql2')
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
@@ -9,7 +9,7 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   charset: 'utf8mb4',
-  timezone: '+08:00'
+  timezone: '+08:00',
 })
 
 module.exports = pool

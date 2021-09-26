@@ -1,8 +1,8 @@
-const pool = require('../db')
+const pool = require('../db').promise()
 const { generalLogger: logger } = require('../logger')
 
 const userModel = {
-  create: async({ nickname, email, hash }) => {
+  create: async ({ nickname, email, hash }) => {
     try {
       const sql = 'INSERT INTO users(nickname, email, password) VALUES(?, ?, ?);'
       logger.debug(sql)
@@ -13,7 +13,7 @@ const userModel = {
     }
   },
 
-  findOne: async({ columns = '*', where }) => {
+  findOne: async ({ columns = '*', where }) => {
     let sql = `SELECT ${columns} FROM users`
     const values = []
 
@@ -33,17 +33,17 @@ const userModel = {
     }
   },
 
-  findAll: async({ columns = '*', where = false, limit, offset, cursor }) => {
+  findAll: async ({ columns = '*', where = false, limit, offset, cursor }) => {
     let sql = `SELECT ${columns} FROM users`
     const values = []
     let usePagination = false
 
     if (limit) {
-      if(cursor || cursor === 0) {
+      if (cursor || cursor === 0) {
         usePagination = true
         const paginationClause = ` WHERE user_id >= ? ORDER BY user_id LIMIT ?`
-        sql += paginationClause;
-        [cursor, limit].forEach((value) => values.push(value))
+        sql += paginationClause
+        ;[cursor, limit].forEach((value) => values.push(value))
       } else if (offset || offset === 0) {
         usePagination = true
         const paginationClause = ` WHERE user_id >= (
@@ -52,12 +52,13 @@ const userModel = {
                                     ORDER BY user_id 
                                     LIMIT 1 OFFSET ?) 
                                   ORDER BY user_id LIMIT ?`
-        sql += paginationClause;
-        [offset, limit].forEach((value) => values.push(value))
+        sql += paginationClause
+        ;[offset, limit].forEach((value) => values.push(value))
       }
     }
 
-    if (where) { // todo: 實作 gt、lt、eq && OR、AND
+    if (where) {
+      // todo: 實作 gt、lt、eq && OR、AND
       let clauseBegin = 'WHERE'
       let limit = null
 
@@ -87,7 +88,7 @@ const userModel = {
     }
   },
 
-  updateUser: async({ user_id, columns }) => {
+  updateUser: async ({ user_id, columns }) => {
     const values = []
     let sql = `UPDATE users`
 
@@ -104,7 +105,7 @@ const userModel = {
     } catch (err) {
       throw err
     }
-  }
+  },
 }
 
 module.exports = userModel

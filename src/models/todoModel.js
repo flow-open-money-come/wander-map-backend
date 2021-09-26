@@ -1,20 +1,20 @@
-const pool = require('../db')
+const pool = require('../db').promise()
 const { generalLogger: logger } = require('../logger')
 
 const todoModel = {
-  getTodoOwner: async(todo_id) => {
+  getTodoOwner: async (todo_id) => {
     const sql = `SELECT user_id FROM todos WHERE todo_id = ?;`
 
     try {
       logger.debug(sql)
-      const [rows, fields] =  await pool.query(sql, todo_id)
+      const [rows, fields] = await pool.query(sql, todo_id)
       return rows
     } catch (err) {
       throw err
     }
   },
 
-  getAll: async({ where }) => {
+  getAll: async ({ where }) => {
     let sql = `SELECT * FROM todos`
     const values = []
 
@@ -33,7 +33,7 @@ const todoModel = {
     }
   },
 
-  create: async(todo) => {
+  create: async (todo) => {
     let sql = `INSERT INTO todos(${Object.keys(todo).join(', ')}) VALUES(?, ?, ?)`
     const values = []
     Object.values(todo).forEach((value) => values.push(value))
@@ -47,10 +47,10 @@ const todoModel = {
     }
   },
 
-  update: async({ todo_id, todo }) => {
+  update: async ({ todo_id, todo }) => {
     let sql = `UPDATE todos`
     const values = []
-    
+
     sql += ` SET ${Object.keys(todo).join(' = ?, ')} = ?`
     Object.values(todo).forEach((value) => values.push(value))
 
@@ -69,7 +69,7 @@ const todoModel = {
     }
   },
 
-  delete: async({ todo_id, user_id }) => {
+  delete: async ({ todo_id, user_id }) => {
     const sql = `DELETE FROM todos WHERE todo_id = ? AND user_id = ?;`
     const values = [todo_id, user_id]
 
@@ -80,7 +80,7 @@ const todoModel = {
     } catch (err) {
       throw err
     }
-  }
+  },
 }
 
 module.exports = todoModel
