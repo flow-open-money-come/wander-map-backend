@@ -1,10 +1,10 @@
 const userRouter = require('express').Router()
 
+const { paramValidator, registerValidator, loginValidator, editUserValidator } = require('../../middlewares/validators')
 const { PATH_ERROR } = require('../../constants/errors')
 const userController = require('../../controllers/userController')
 const todoController = require('../../controllers/todoController')
 const auth = require('../../middlewares/auth')
-const handleParams = require('../../middlewares/handleParams')
 
 /**
  * @swagger
@@ -34,7 +34,7 @@ const handleParams = require('../../middlewares/handleParams')
  *       "500":
  *         description: System error
  */
-userRouter.post('/register', userController.register)
+userRouter.post('/register', registerValidator, userController.register)
 
 /**
  * @swagger
@@ -70,7 +70,7 @@ userRouter.post('/register', userController.register)
  *      "500":
  *        description: System error
  */
-userRouter.post('/login', userController.login)
+userRouter.post('/login', loginValidator, userController.login)
 
 /**
  *  @swagger
@@ -123,12 +123,12 @@ userRouter.get('/testAuth', auth, (req, res) => res.json('auth success!!'))
  */
 userRouter.get('/', userController.getUsers)
 
-userRouter.get('/:user_id', handleParams, userController.getUser)
-userRouter.patch('/:user_id', auth, handleParams, userController.editUser)
-userRouter.get('/:user_id/todos', handleParams, todoController.getTodos)
-userRouter.post('/:user_id/todos', auth, handleParams, todoController.postTodo)
-userRouter.patch('/:user_id/todos/:todo_id', auth, handleParams, todoController.updateTodo)
-userRouter.delete('/:user_id/todos/:todo_id', auth, handleParams, todoController.deleteTodo)
+userRouter.get('/:user_id', paramValidator, userController.getUser)
+userRouter.patch('/:user_id', auth, paramValidator, editUserValidator, userController.editUser)
+userRouter.get('/:user_id/todos', paramValidator, todoController.getTodos)
+userRouter.post('/:user_id/todos', auth, paramValidator, todoController.postTodo)
+userRouter.patch('/:user_id/todos/:todo_id', auth, paramValidator, todoController.updateTodo)
+userRouter.delete('/:user_id/todos/:todo_id', auth, paramValidator, todoController.deleteTodo)
 
 // userRouter.get('/:user_id/articles', (req, res, next) => res.json('articles'))
 // userRouter.patch('/:user_id/articles/:article_id', (req, res, next) => res.json('like/unlike'))

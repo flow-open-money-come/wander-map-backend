@@ -30,12 +30,12 @@ app.use((err, req, res, next) => {
     msg = `Input instances are not in JSON format.`
     status = 400
   }
-  
+
   generalLogger.error(err)
   res.status(status).json({
     success: false,
     message: msg,
-    data: {}
+    data: {},
   })
 })
 
