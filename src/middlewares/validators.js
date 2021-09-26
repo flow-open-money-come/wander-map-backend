@@ -1,4 +1,4 @@
-const { param, body, validationResult } = require('express-validator')
+const { query, param, body, validationResult } = require('express-validator')
 const { INVALID_INPUT } = require('../constants/errors')
 
 function handleValidationResult(req, res, next) {
@@ -30,14 +30,21 @@ const validators = {
 
   loginValidator: [body('email').trim(), body('password').trim(), handleValidationResult],
 
+  getUsersValidator: [query('limit').optional().toInt(), query('offset').optional().toInt(), query('cursor').optional().toInt(), handleValidationResult],
+
   editUserValidator: [
+    body('nickname').optional().trim(),
+    body('icon_url').optional().trim(),
+    body('role').optional().trim(),
     body('password', 'Password must be at least 8 characters long and include at least 1 number & 1 alphabetical character')
+      .optional()
       .trim()
       .custom((value) => {
         const passwordFormat = new RegExp(/(?=.*\d)(?=.*[a-zA-Z])^[a-zA-Z0-9!@#$%^&*]{8,}$/)
         return passwordFormat.test(value)
       }),
     body('confirmPassword', 'Password and confirm password does not match')
+      .optional()
       .trim()
       .custom((value, { req }) => value === req.body.password),
     handleValidationResult,

@@ -54,6 +54,9 @@ const userModel = {
                                   ORDER BY user_id LIMIT ?`
         sql += paginationClause
         ;[offset, limit].forEach((value) => values.push(value))
+      } else {
+        sql += ` ORDER BY user_id LIMIT ?`
+        values.push(limit)
       }
     }
 
@@ -98,7 +101,7 @@ const userModel = {
     sql += ` WHERE user_id = ?;`
     values.push(user_id)
 
-    logger.debug(sql)
+    logger.debug(sql + values.join(', '))
     try {
       const [rows, fields] = await pool.query(sql, values)
       return rows

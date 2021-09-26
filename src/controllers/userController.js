@@ -11,7 +11,7 @@ const tokenSecret = process.env.JWT_TOKEN_SECRET
 async function getPermissionRole({ tokenPayload, user_id }) {
   const authUser = (await userModel.findOne({ where: { user_id: tokenPayload.user_id } }))[0]
   if (authUser.user_id !== user_id && authUser.role !== 'admin') return false
-  return true
+  return authUser.role
 }
 
 const userController = {
@@ -20,6 +20,7 @@ const userController = {
 
     try {
       let users = await userModel.findOne({ where: { email } })
+      // 409 代表請求與目前伺服器狀態衝突，但 google、facebook 等大公司都回 200
       if (users.length !== 0) return res.status(200).json(DUPLICATE_EMAIL)
 
       const hash = await bcrypt.hash(password, saltRounds)
@@ -91,16 +92,15 @@ const userController = {
   },
 
   getUsers: async (req, res, next) => {
-    const options = {}
-    const needInteger = ['limit', 'offset', 'cursor']
-
-    for (let i = 0; i < needInteger.length; i++) {
-      const parsed = parseInt(req.query[needInteger[i]], 10) // req.query 拿出來是 string
-      options[needInteger[i]] = Number.isInteger(parsed) ? parsed : null // parseInt 可能會 return NaN
+    const { limit, offset, cursor } = req.query
+    const options = {
+      limit: limit || 20,
+      offset: offset ?? 0,
+      cursor: cursor ?? 0,
     }
 
-    options.limit = options.limit ?? 20
     options.limit = options.limit > 200 ? 200 : options.limit
+    options.limit = options.limit < 0 ? 20 : options.limit
     options.columns = 'user_id, nickname, email, icon_url, role, updated_at, created_at'
 
     try {
@@ -153,10 +153,11 @@ const userController = {
       const authRole = await getPermissionRole({ tokenPayload: res.locals.tokenPayload, user_id })
       if (!authRole) return res.status(403).json(FORBIDDEN_ACTION)
 
+      if (password) password = await bcrypt.hash(password, saltRounds)
       const columns = { nickname, icon_url, password }
-      if (authRole === 'admin') {
+      if (authRole === 'admin' && role) {
         const validValues = ['admin', 'member', 'suspended', 1, 2, 3]
-        if (!validValues.includes(role)) return res.json(400).json(INVALID_INPUT)
+        if (!validValues.includes(role)) return res.status(400).json(INVALID_INPUT)
         columns.role = role
       }
       for (let column in columns) {

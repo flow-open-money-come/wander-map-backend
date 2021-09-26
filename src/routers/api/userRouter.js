@@ -1,6 +1,6 @@
 const userRouter = require('express').Router()
 
-const { paramValidator, registerValidator, loginValidator, editUserValidator } = require('../../middlewares/validators')
+const { paramValidator, registerValidator, loginValidator, getUsersValidator, editUserValidator } = require('../../middlewares/validators')
 const { PATH_ERROR } = require('../../constants/errors')
 const userController = require('../../controllers/userController')
 const todoController = require('../../controllers/todoController')
@@ -121,7 +121,7 @@ userRouter.get('/testAuth', auth, (req, res) => res.json('auth success!!'))
  *            schema:
  *              $ref: '#/components/schemas/getAllUsers'
  */
-userRouter.get('/', userController.getUsers)
+userRouter.get('/', getUsersValidator, userController.getUsers)
 
 userRouter.get('/:user_id', paramValidator, userController.getUser)
 userRouter.patch('/:user_id', auth, paramValidator, editUserValidator, userController.editUser)
