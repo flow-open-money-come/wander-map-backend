@@ -32,7 +32,7 @@ const transportConfig = {
   zippedArchive: true,
   maxSize: '20m',
   maxFiles: '14d',
-  level: 'info'
+  level: 'debug'
 }
 const combinedRotateTransport = new transports.DailyRotateFile(transportConfig)
 
@@ -57,14 +57,18 @@ const requestLogger = createLogger({
   format: combine(
     appLabel,
     timestamp(),
+    errors({ stack: true }),
     requestFormat
   ),
-  transports: [combinedRotateTransport]
+  transports: [
+    combinedRotateTransport,
+    errorRotateTransport
+  ]
 })
 
 if (process.env.NODE_ENV !== 'production') {
-  generalLogger.add(new transports.Console())
-  requestLogger.add(new transports.Console())
+  generalLogger.add(new transports.Console({ level: 'debug' }))
+  requestLogger.add(new transports.Console({ level: 'http' }))
 }
 
 module.exports = {

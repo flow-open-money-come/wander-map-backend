@@ -2,9 +2,13 @@ require('dotenv').config()
 
 const express = require('express')
 const apiRouter = require('./routers/api')
+const bodyParser = require('body-parser')
+
 // const apiv2Router = require('./routers/apiv2')
 const logRequest = require('./middlewares/logRequest')
 const { generalLogger } = require('./logger')
+const { PATH_ERROR } = require('./constants/errors')
+const db = require('./db')
 
 const app = express()
 const PORT = process.env.APP_SERVER_PORT || 8888
@@ -13,11 +17,15 @@ app.use(logRequest)
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+app.use(bodyParser.urlencoded({ extended: false })) 
+app.use(bodyParser.json())
+
+
 app.use('/api/v1', apiRouter)
 // app.use('/api/v2', (req, res) => res.json('apiv2 is not ready.'))
 
 app.all('*', (req, res, next) => {
-  res.json('here is all')
+  res.status(404).json(PATH_ERROR)
 })
 
 app.use((err, req, res, next) => {
