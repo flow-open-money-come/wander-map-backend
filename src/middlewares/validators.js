@@ -49,6 +49,8 @@ const validators = {
       .custom((value, { req }) => value === req.body.password),
     handleValidationResult,
   ],
+
+  editTodoValidator: [body('is_done').optional().trim().toInt(), handleValidationResult],
 }
 
 module.exports = validators

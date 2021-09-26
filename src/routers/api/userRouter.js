@@ -1,6 +1,6 @@
 const userRouter = require('express').Router()
 
-const { paramValidator, registerValidator, loginValidator, getUsersValidator, editUserValidator } = require('../../middlewares/validators')
+const { paramValidator, registerValidator, loginValidator, getUsersValidator, editUserValidator, editTodoValidator } = require('../../middlewares/validators')
 const { PATH_ERROR } = require('../../constants/errors')
 const userController = require('../../controllers/userController')
 const todoController = require('../../controllers/todoController')
@@ -127,7 +127,7 @@ userRouter.get('/:user_id', paramValidator, userController.getUser)
 userRouter.patch('/:user_id', auth, paramValidator, editUserValidator, userController.editUser)
 userRouter.get('/:user_id/todos', paramValidator, todoController.getTodos)
 userRouter.post('/:user_id/todos', auth, paramValidator, todoController.postTodo)
-userRouter.patch('/:user_id/todos/:todo_id', auth, paramValidator, todoController.updateTodo)
+userRouter.patch('/:user_id/todos/:todo_id', auth, paramValidator, editTodoValidator, todoController.updateTodo)
 userRouter.delete('/:user_id/todos/:todo_id', auth, paramValidator, todoController.deleteTodo)
 
 // userRouter.get('/:user_id/articles', (req, res, next) => res.json('articles'))
