@@ -34,7 +34,7 @@ const validators = {
 
   editUserValidator: [
     body('nickname').optional().trim(),
-    body('icon_url').optional().trim(),
+    body('iconUrl').optional().trim(),
     body('role').optional().trim(),
     body('password', 'Password must be at least 8 characters long and include at least 1 number & 1 alphabetical character')
       .optional()
@@ -50,7 +50,10 @@ const validators = {
     handleValidationResult,
   ],
 
-  editTodoValidator: [body('is_done').optional().trim().toInt(), handleValidationResult],
+  postTodoValidator: [body('content', 'content is required').exists({ checkNull: true }).trim(), handleValidationResult],
+  editTodoValidator: [body('isDone').optional().trim().toInt(), handleValidationResult],
+  likedArticleValidator: [body('articleId', 'articleId must be integer').trim().toInt().isInt({ min: 1 }), handleValidationResult],
+  collectedTrailsValidator: [body('trailId', 'trailId must be integer').trim().toInt().isInt({ min: 1 }), handleValidationResult],
 }
 
 module.exports = validators

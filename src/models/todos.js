@@ -2,12 +2,12 @@ const pool = require('../db').promise()
 const { generalLogger: logger } = require('../logger')
 
 const todoModel = {
-  getTodoOwner: async (todo_id) => {
+  getTodoOwner: async (todoId) => {
     const sql = `SELECT user_id FROM todos WHERE todo_id = ?;`
 
     try {
       logger.debug(sql)
-      const [rows, fields] = await pool.query(sql, todo_id)
+      const [rows, fields] = await pool.query(sql, todoId)
       return rows
     } catch (err) {
       throw err
@@ -47,7 +47,7 @@ const todoModel = {
     }
   },
 
-  update: async ({ todo_id, todo }) => {
+  update: async ({ todoId, todo }) => {
     let sql = `UPDATE todos`
     const values = []
 
@@ -55,7 +55,7 @@ const todoModel = {
     Object.values(todo).forEach((value) => values.push(value))
 
     sql += ` WHERE todo_id = ? AND user_id = ?`
-    values.push(todo_id)
+    values.push(todoId)
     values.push(todo.user_id)
 
     sql += ';'
@@ -69,9 +69,9 @@ const todoModel = {
     }
   },
 
-  delete: async ({ todo_id, user_id }) => {
+  delete: async ({ todoId, userId }) => {
     const sql = `DELETE FROM todos WHERE todo_id = ? AND user_id = ?;`
-    const values = [todo_id, user_id]
+    const values = [todoId, userId]
 
     try {
       logger.debug(sql)

@@ -91,7 +91,7 @@ const userModel = {
     }
   },
 
-  updateUser: async ({ user_id, columns }) => {
+  updateUser: async ({ userId, columns }) => {
     const values = []
     let sql = `UPDATE users`
 
@@ -99,9 +99,9 @@ const userModel = {
     Object.values(columns).forEach((value) => values.push(value))
 
     sql += ` WHERE user_id = ?;`
-    values.push(user_id)
+    values.push(userId)
 
-    logger.debug(sql + values.join(', '))
+    logger.debug(sql)
     try {
       const [rows, fields] = await pool.query(sql, values)
       return rows

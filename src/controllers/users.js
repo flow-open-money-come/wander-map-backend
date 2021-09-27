@@ -2,15 +2,17 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 
 const { generalLogger: logger } = require('../logger')
-const userModel = require('../models/userModel')
-const { INVALID_INPUT, UNAUTHORIZED, FORBIDDEN_ACTION, DUPLICATE_EMAIL } = require('../constants/errors')
+const userModel = require('../models/users')
+const articleModel = require('../models/articles')
+const trailModel = require('../models/trails')
+const { INVALID_INPUT, FORBIDDEN_ACTION, DUPLICATE_EMAIL, LOGIN_ERROR } = require('../constants/errors')
 
 const saltRounds = 10
 const tokenSecret = process.env.JWT_TOKEN_SECRET
 
-async function getPermissionRole({ tokenPayload, user_id }) {
+async function getPermissionRole({ tokenPayload, userId }) {
   const authUser = (await userModel.findOne({ where: { user_id: tokenPayload.user_id } }))[0]
-  if (authUser.user_id !== user_id && authUser.role !== 'admin') return false
+  if (authUser.user_id !== userId && authUser.role !== 'admin') return false
   return authUser.role
 }
 
@@ -61,12 +63,12 @@ const userController = {
 
     try {
       const users = await userModel.findOne({ where: { email } })
-      if (users.length === 0) return res.status(401).json(UNAUTHORIZED)
+      if (users.length === 0) return res.status(401).json(LOGIN_ERROR)
 
       const { user_id, nickname, password: hash, icon_url, role, updated_at, created_at } = users[0]
       const isValid = await bcrypt.compare(password, hash)
 
-      if (!isValid) return res.status(401).json(UNAUTHORIZED)
+      if (!isValid) return res.status(401).json(LOGIN_ERROR)
       const token = jwt.sign(
         {
           user_id,
@@ -127,11 +129,11 @@ const userController = {
   },
 
   getUser: async (req, res, next) => {
-    const { user_id } = req.params
+    const { userId } = req.params
 
     try {
       const options = {
-        where: { user_id },
+        where: { user_id: userId },
         columns: 'user_id, nickname, email, icon_url, role, updated_at, created_at',
       }
       const user = await userModel.findOne(options)
@@ -146,15 +148,15 @@ const userController = {
   },
 
   editUser: async (req, res, next) => {
-    const { user_id } = req.params
-    let { nickname, icon_url, password, role } = req.body
+    const { userId } = req.params
+    let { nickname, iconUrl, password, role } = req.body
 
     try {
-      const authRole = await getPermissionRole({ tokenPayload: res.locals.tokenPayload, user_id })
+      const authRole = await getPermissionRole({ tokenPayload: res.locals.tokenPayload, userId })
       if (!authRole) return res.status(403).json(FORBIDDEN_ACTION)
 
       if (password) password = await bcrypt.hash(password, saltRounds)
-      const columns = { nickname, icon_url, password }
+      const columns = { nickname, icon_url: iconUrl, password }
       if (authRole === 'admin' && role) {
         const validValues = ['admin', 'member', 'suspended', 1, 2, 3]
         if (!validValues.includes(role)) return res.status(400).json(INVALID_INPUT)
@@ -164,11 +166,125 @@ const userController = {
         if (!columns[column]) delete columns[column]
       }
 
-      await userModel.updateUser({ user_id, columns })
+      await userModel.updateUser({ userId, columns })
       res.json({
         success: true,
-        message: `user_id: ${user_id} is updated`,
+        message: `user_id: ${userId} is updated`,
         data: {},
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  getArticles: (req, res, next) => {
+    const { userId } = req.params
+
+    articleModel.findByUserId(userId, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: `articles wrote by user ${userId}`,
+        data: { articles: results },
+      })
+    })
+  },
+
+  getLikedArticles: (req, res, next) => {
+    const { userId } = req.params
+
+    articleModel.findByUserLike(userId, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: `articles liked by user ${userId}`,
+        data: { articles: results },
+      })
+    })
+  },
+
+  likeArticle: (req, res, next) => {
+    const { articleId } = req.body
+    const { userId } = req.params
+
+    articleModel.createLikeAssociation(userId, articleId, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: 'like association was created',
+        data: { results },
+      })
+    })
+  },
+
+  unlikeArticle: (req, res, next) => {
+    const { userId, articleId } = req.params
+
+    articleModel.deleteLikeAssociation(userId, articleId, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: 'like association was deleted',
+        data: { results },
+      })
+    })
+  },
+
+  getTrails: async (req, res, next) => {
+    const { userId } = req.params
+
+    try {
+      const trails = await trailModel.findByUserId(userId)
+      res.json({
+        success: true,
+        message: `trails wrote by user ${userId}`,
+        data: { trails },
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  getCollectedTrails: async (req, res, next) => {
+    const { userId } = req.params
+
+    try {
+      const trails = await trailModel.findByUserCollect(userId)
+      res.json({
+        success: true,
+        message: `trails collected by user ${userId}`,
+        data: { trails },
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  collectTrail: async (req, res, next) => {
+    const { userId } = req.params
+    const { trailId } = req.body
+
+    try {
+      const result = await trailModel.createCollectAssociation(userId, trailId)
+      res.json({
+        success: true,
+        message: 'collect association was created',
+        data: { result },
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  cancelCollectTrail: async (req, res, next) => {
+    const { userId, trailId } = req.params
+
+    try {
+      const result = await trailModel.deleteCollectAssociation(userId, trailId)
+      res.json({
+        success: true,
+        message: 'collect association was deleted',
+        data: { result },
       })
     } catch (err) {
       next(err)

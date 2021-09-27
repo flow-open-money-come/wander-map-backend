@@ -1,10 +1,10 @@
 const userRouter = require('express').Router()
 
-const { paramValidator, registerValidator, loginValidator, getUsersValidator, editUserValidator, editTodoValidator } = require('../../middlewares/validators')
-const { PATH_ERROR } = require('../../constants/errors')
-const userController = require('../../controllers/userController')
-const todoController = require('../../controllers/todoController')
 const auth = require('../../middlewares/auth')
+const { paramValidator, registerValidator, loginValidator, getUsersValidator, editUserValidator, editTodoValidator, postTodoValidator, likedArticleValidator, collectedTrailsValidator } = require('../../middlewares/validators')
+const { PATH_ERROR } = require('../../constants/errors')
+const userController = require('../../controllers/users')
+const todoController = require('../../controllers/todos')
 
 /**
  * @swagger
@@ -123,17 +123,23 @@ userRouter.get('/testAuth', auth, (req, res) => res.json('auth success!!'))
  */
 userRouter.get('/', getUsersValidator, userController.getUsers)
 
-userRouter.get('/:user_id', paramValidator, userController.getUser)
-userRouter.patch('/:user_id', auth, paramValidator, editUserValidator, userController.editUser)
-userRouter.get('/:user_id/todos', paramValidator, todoController.getTodos)
-userRouter.post('/:user_id/todos', auth, paramValidator, todoController.postTodo)
-userRouter.patch('/:user_id/todos/:todo_id', auth, paramValidator, editTodoValidator, todoController.updateTodo)
-userRouter.delete('/:user_id/todos/:todo_id', auth, paramValidator, todoController.deleteTodo)
+userRouter.get('/:userId', paramValidator, userController.getUser)
+userRouter.patch('/:userId', auth, paramValidator, editUserValidator, userController.editUser)
 
-// userRouter.get('/:user_id/articles', (req, res, next) => res.json('articles'))
-// userRouter.patch('/:user_id/articles/:article_id', (req, res, next) => res.json('like/unlike'))
-// userRouter.get('/:user_id/trails', (req, res, next) => res.json('trails'))
-// userRouter.patch('/:user_id/trails/:trail_id', (req, res, next) => res.json('collect'))
+userRouter.get('/:userId/todos', auth, paramValidator, todoController.getTodos)
+userRouter.post('/:userId/todos', auth, paramValidator, postTodoValidator, todoController.postTodo)
+userRouter.patch('/:userId/todos/:todoId', auth, paramValidator, editTodoValidator, todoController.updateTodo)
+userRouter.delete('/:userId/todos/:todoId', auth, paramValidator, todoController.deleteTodo)
 
-userRouter.all('*', (req, res) => res.json(PATH_ERROR))
+userRouter.get('/:userId/articles', paramValidator, userController.getArticles)
+userRouter.get('/:userId/liked-articles', paramValidator, userController.getLikedArticles)
+userRouter.post('/:userId/liked-articles', paramValidator, likedArticleValidator, userController.likeArticle)
+userRouter.delete('/:userId/liked-articles/:articleId', paramValidator, userController.unlikeArticle)
+
+userRouter.get('/:userId/trails', paramValidator, userController.getTrails)
+userRouter.get('/:userId/collected-trails', paramValidator, userController.getCollectedTrails)
+userRouter.post('/:userId/collected-trails', paramValidator, collectedTrailsValidator, userController.collectTrail)
+userRouter.delete('/:userId/collected-trails/:trailId', paramValidator, userController.cancelCollectTrail)
+
+userRouter.all('*', (req, res) => res.status(400).json(PATH_ERROR))
 module.exports = userRouter
