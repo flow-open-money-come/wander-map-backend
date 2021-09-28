@@ -34,7 +34,8 @@ const todoModel = {
   },
 
   create: async (todo) => {
-    let sql = `INSERT INTO todos(${Object.keys(todo).join(', ')}) VALUES(?, ?, ?)`
+    const valueLength = Object.keys(todo).length
+    let sql = `INSERT INTO todos(${Object.keys(todo).join(', ')}) VALUES(${Array(valueLength).fill('?').join(', ')})`
     const values = []
     Object.values(todo).forEach((value) => values.push(value))
 

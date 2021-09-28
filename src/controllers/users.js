@@ -10,12 +10,6 @@ const { INVALID_INPUT, FORBIDDEN_ACTION, DUPLICATE_EMAIL, LOGIN_ERROR } = requir
 const saltRounds = 10
 const tokenSecret = process.env.JWT_TOKEN_SECRET
 
-async function getPermissionRole({ tokenPayload, userId }) {
-  const authUser = (await userModel.findOne({ where: { user_id: tokenPayload.user_id } }))[0]
-  if (authUser.user_id !== userId && authUser.role !== 'admin') return false
-  return authUser.role
-}
-
 const userController = {
   register: async (req, res, next) => {
     const { nickname, email, password } = req.body
@@ -94,6 +88,9 @@ const userController = {
   },
 
   getUsers: async (req, res, next) => {
+    const { tokenPayload } = res.locals
+    if (tokenPayload.role !== 'admin') return res.status(403).json(FORBIDDEN_ACTION)
+
     const { limit, offset, cursor } = req.query
     const options = {
       limit: limit || 20,
@@ -131,6 +128,9 @@ const userController = {
   getUser: async (req, res, next) => {
     const { userId } = req.params
 
+    const { tokenPayload } = res.locals
+    if (tokenPayload.user_id !== userId && tokenPayload.role !== 'admin') return res.status(403).json(FORBIDDEN_ACTION)
+
     try {
       const options = {
         where: { user_id: userId },
@@ -151,13 +151,13 @@ const userController = {
     const { userId } = req.params
     let { nickname, iconUrl, password, role } = req.body
 
-    try {
-      const authRole = await getPermissionRole({ tokenPayload: res.locals.tokenPayload, userId })
-      if (!authRole) return res.status(403).json(FORBIDDEN_ACTION)
+    const { tokenPayload } = res.locals
+    if (tokenPayload.user_id !== userId && tokenPayload.role !== 'admin') return res.status(403).json(FORBIDDEN_ACTION)
 
+    try {
       if (password) password = await bcrypt.hash(password, saltRounds)
       const columns = { nickname, icon_url: iconUrl, password }
-      if (authRole === 'admin' && role) {
+      if (tokenPayload.role === 'admin' && role) {
         const validValues = ['admin', 'member', 'suspended', 1, 2, 3]
         if (!validValues.includes(role)) return res.status(400).json(INVALID_INPUT)
         columns.role = role
@@ -203,9 +203,12 @@ const userController = {
     })
   },
 
-  likeArticle: (req, res, next) => {
+  likeArticle: async (req, res, next) => {
     const { articleId } = req.body
     const { userId } = req.params
+
+    const { tokenPayload } = res.locals
+    if (tokenPayload.user_id !== userId && tokenPayload.role !== 'admin') return res.status(403).json(FORBIDDEN_ACTION)
 
     articleModel.createLikeAssociation(userId, articleId, (err, results) => {
       if (err) return next(err)
@@ -219,6 +222,9 @@ const userController = {
 
   unlikeArticle: (req, res, next) => {
     const { userId, articleId } = req.params
+
+    const { tokenPayload } = res.locals
+    if (tokenPayload.user_id !== userId && tokenPayload.role !== 'admin') return res.status(403).json(FORBIDDEN_ACTION)
 
     articleModel.deleteLikeAssociation(userId, articleId, (err, results) => {
       if (err) return next(err)
@@ -264,6 +270,9 @@ const userController = {
     const { userId } = req.params
     const { trailId } = req.body
 
+    const { tokenPayload } = res.locals
+    if (tokenPayload.user_id !== userId && tokenPayload.role !== 'admin') return res.status(403).json(FORBIDDEN_ACTION)
+
     try {
       const result = await trailModel.createCollectAssociation(userId, trailId)
       res.json({
@@ -278,6 +287,9 @@ const userController = {
 
   cancelCollectTrail: async (req, res, next) => {
     const { userId, trailId } = req.params
+
+    const { tokenPayload } = res.locals
+    if (tokenPayload.user_id !== userId && tokenPayload.role !== 'admin') return res.status(403).json(FORBIDDEN_ACTION)
 
     try {
       const result = await trailModel.deleteCollectAssociation(userId, trailId)

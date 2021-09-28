@@ -121,9 +121,9 @@ userRouter.get('/testAuth', auth, (req, res) => res.json('auth success!!'))
  *            schema:
  *              $ref: '#/components/schemas/getAllUsers'
  */
-userRouter.get('/', getUsersValidator, userController.getUsers)
+userRouter.get('/', auth, getUsersValidator, userController.getUsers)
 
-userRouter.get('/:userId', paramValidator, userController.getUser)
+userRouter.get('/:userId', auth, paramValidator, userController.getUser)
 userRouter.patch('/:userId', auth, paramValidator, editUserValidator, userController.editUser)
 
 userRouter.get('/:userId/todos', auth, paramValidator, todoController.getTodos)
@@ -133,13 +133,13 @@ userRouter.delete('/:userId/todos/:todoId', auth, paramValidator, todoController
 
 userRouter.get('/:userId/articles', paramValidator, userController.getArticles)
 userRouter.get('/:userId/liked-articles', paramValidator, userController.getLikedArticles)
-userRouter.post('/:userId/liked-articles', paramValidator, likedArticleValidator, userController.likeArticle)
-userRouter.delete('/:userId/liked-articles/:articleId', paramValidator, userController.unlikeArticle)
+userRouter.post('/:userId/liked-articles', auth, paramValidator, likedArticleValidator, userController.likeArticle)
+userRouter.delete('/:userId/liked-articles/:articleId', auth, paramValidator, userController.unlikeArticle)
 
 userRouter.get('/:userId/trails', paramValidator, userController.getTrails)
 userRouter.get('/:userId/collected-trails', paramValidator, userController.getCollectedTrails)
-userRouter.post('/:userId/collected-trails', paramValidator, collectedTrailsValidator, userController.collectTrail)
-userRouter.delete('/:userId/collected-trails/:trailId', paramValidator, userController.cancelCollectTrail)
+userRouter.post('/:userId/collected-trails', auth, paramValidator, collectedTrailsValidator, userController.collectTrail)
+userRouter.delete('/:userId/collected-trails/:trailId', auth, paramValidator, userController.cancelCollectTrail)
 
 userRouter.all('*', (req, res) => res.status(400).json(PATH_ERROR))
 module.exports = userRouter

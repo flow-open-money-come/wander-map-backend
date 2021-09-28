@@ -39,7 +39,7 @@ const userModel = {
     let usePagination = false
 
     if (limit) {
-      if (cursor || cursor === 0) {
+      if (cursor) {
         usePagination = true
         const paginationClause = ` WHERE user_id >= ? ORDER BY user_id LIMIT ?`
         sql += paginationClause
