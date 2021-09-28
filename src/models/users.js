@@ -39,7 +39,7 @@ const userModel = {
     let usePagination = false
 
     if (limit) {
-      if (cursor || cursor === 0) {
+      if (cursor) {
         usePagination = true
         const paginationClause = ` WHERE user_id >= ? ORDER BY user_id LIMIT ?`
         sql += paginationClause
@@ -54,6 +54,9 @@ const userModel = {
                                   ORDER BY user_id LIMIT ?`
         sql += paginationClause
         ;[offset, limit].forEach((value) => values.push(value))
+      } else {
+        sql += ` ORDER BY user_id LIMIT ?`
+        values.push(limit)
       }
     }
 
@@ -88,7 +91,7 @@ const userModel = {
     }
   },
 
-  updateUser: async ({ user_id, columns }) => {
+  updateUser: async ({ userId, columns }) => {
     const values = []
     let sql = `UPDATE users`
 
@@ -96,7 +99,7 @@ const userModel = {
     Object.values(columns).forEach((value) => values.push(value))
 
     sql += ` WHERE user_id = ?;`
-    values.push(user_id)
+    values.push(userId)
 
     logger.debug(sql)
     try {
