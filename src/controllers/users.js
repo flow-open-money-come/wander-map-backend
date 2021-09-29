@@ -94,12 +94,9 @@ const userController = {
     const { limit, offset, cursor } = req.query
     const options = {
       limit: limit || 20,
-      offset: offset ?? 0,
-      cursor: cursor ?? 0,
+      offset: offset || 0,
+      cursor: cursor || 0,
     }
-
-    options.limit = options.limit > 200 ? 200 : options.limit
-    options.limit = options.limit < 0 ? 20 : options.limit
     options.columns = 'user_id, nickname, email, icon_url, role, updated_at, created_at'
 
     try {
@@ -179,8 +176,21 @@ const userController = {
 
   getArticles: (req, res, next) => {
     const { userId } = req.params
+    const { limit, offset, cursor, tag } = req.query
+    const options = {
+      limit,
+      offset,
+      cursor,
+      tag,
+    }
 
-    articleModel.findByUserId(userId, (err, results) => {
+    Object.keys(options).forEach((value, index) => {
+      if (!value && value !== 0) {
+        delete options[index]
+      }
+    })
+
+    articleModel.findByUserId(userId, options, (err, results) => {
       if (err) return next(err)
       res.json({
         success: true,
@@ -192,8 +202,21 @@ const userController = {
 
   getLikedArticles: (req, res, next) => {
     const { userId } = req.params
+    const { limit, offset, cursor, tag } = req.query
+    const options = {
+      limit: limit || 20,
+      offset,
+      cursor,
+      tag,
+    }
 
-    articleModel.findByUserLike(userId, (err, results) => {
+    Object.keys(options).forEach((value, index) => {
+      if (!value && value !== 0) {
+        delete options[index]
+      }
+    })
+
+    articleModel.findByUserLike(userId, options, (err, results) => {
       if (err) return next(err)
       res.json({
         success: true,

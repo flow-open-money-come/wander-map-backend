@@ -13,6 +13,27 @@ function handleValidationResult(req, res, next) {
 const validators = {
   paramValidator: [param('*', 'id in params must be integer').toInt().isInt(), handleValidationResult],
 
+  paginationValidator: [
+    query('limit')
+      .optional()
+      .toInt()
+      .customSanitizer((limit) => limit || 20)
+      .customSanitizer((limit) => (limit > 200 ? 200 : limit))
+      .customSanitizer((limit) => (limit <= 0 ? 20 : limit)),
+    query('offset')
+      .optional()
+      .toInt()
+      .customSanitizer((offset) => offset ?? 0)
+      .customSanitizer((offset) => (offset < 0 ? 0 : offset)),
+    query('cursor')
+      .optional()
+      .toInt()
+      .customSanitizer((cursor) => cursor ?? 0)
+      .customSanitizer((cursor) => (cursor <= 0 ? 0 : cursor)),
+    query('tag').optional().toArray(),
+    handleValidationResult,
+  ],
+
   registerValidator: [
     body('nickname', 'nickname must not be empty').trim().notEmpty(),
     body('email', 'email format error').trim().normalizeEmail().isEmail(),
@@ -29,8 +50,6 @@ const validators = {
   ],
 
   loginValidator: [body('email').trim(), body('password').trim(), handleValidationResult],
-
-  getUsersValidator: [query('limit').optional().toInt(), query('offset').optional().toInt(), query('cursor').optional().toInt(), handleValidationResult],
 
   editUserValidator: [
     body('nickname').optional().trim(),

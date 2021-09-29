@@ -1,7 +1,7 @@
 const userRouter = require('express').Router()
 
 const auth = require('../../middlewares/auth')
-const { paramValidator, registerValidator, loginValidator, getUsersValidator, editUserValidator, editTodoValidator, postTodoValidator, likedArticleValidator, collectedTrailsValidator } = require('../../middlewares/validators')
+const { paramValidator, paginationValidator, registerValidator, loginValidator, editUserValidator, editTodoValidator, postTodoValidator, likedArticleValidator, collectedTrailsValidator } = require('../../middlewares/validators')
 const { PATH_ERROR } = require('../../constants/errors')
 const userController = require('../../controllers/users')
 const todoController = require('../../controllers/todos')
@@ -121,7 +121,7 @@ userRouter.get('/testAuth', auth, (req, res) => res.json('auth success!!'))
  *            schema:
  *              $ref: '#/components/schemas/getAllUsers'
  */
-userRouter.get('/', auth, getUsersValidator, userController.getUsers)
+userRouter.get('/', auth, paginationValidator, userController.getUsers)
 
 userRouter.get('/:userId', auth, paramValidator, userController.getUser)
 userRouter.patch('/:userId', auth, paramValidator, editUserValidator, userController.editUser)
@@ -131,8 +131,8 @@ userRouter.post('/:userId/todos', auth, paramValidator, postTodoValidator, todoC
 userRouter.patch('/:userId/todos/:todoId', auth, paramValidator, editTodoValidator, todoController.updateTodo)
 userRouter.delete('/:userId/todos/:todoId', auth, paramValidator, todoController.deleteTodo)
 
-userRouter.get('/:userId/articles', paramValidator, userController.getArticles)
-userRouter.get('/:userId/liked-articles', paramValidator, userController.getLikedArticles)
+userRouter.get('/:userId/articles', paramValidator, paginationValidator, userController.getArticles)
+userRouter.get('/:userId/liked-articles', paramValidator, paginationValidator, userController.getLikedArticles)
 userRouter.post('/:userId/liked-articles', auth, paramValidator, likedArticleValidator, userController.likeArticle)
 userRouter.delete('/:userId/liked-articles/:articleId', auth, paramValidator, userController.unlikeArticle)
 
