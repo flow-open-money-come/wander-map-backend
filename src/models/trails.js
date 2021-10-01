@@ -47,9 +47,9 @@ const trailModel = {
     let sql = `SELECT * FROM trails WHERE author_id = ?`
     let values = [userId]
 
-    const result = getPaginationAndFilterSuffix(options)
-    sql += result.sql + ';'
-    values = values.concat(result.values)
+    const suffix = getPaginationAndFilterSuffix(options)
+    sql += suffix.sql + ';'
+    values = values.concat(suffix.values)
 
     try {
       logger.debug(sql)
@@ -69,9 +69,9 @@ const trailModel = {
                   WHERE user_id = ?)`
     let values = [userId]
 
-    const result = getPaginationAndFilterSuffix(options)
-    sql += result.sql + ';'
-    values = values.concat(result.values)
+    const suffix = getPaginationAndFilterSuffix(options)
+    sql += suffix.sql + ';'
+    values = values.concat(suffix.values)
 
     try {
       logger.debug(sql)
@@ -91,7 +91,7 @@ const trailModel = {
     const values = [userId, trailId, userId, trailId]
 
     try {
-      logger.debug(result.sql)
+      logger.debug(sql)
       const [rows, fields] = await pool.query(sql, values)
       return rows
     } catch (err) {
@@ -105,7 +105,7 @@ const trailModel = {
     const values = [userId, trailId]
 
     try {
-      logger.debug(result.sql)
+      logger.debug(sql)
       const [rows, fields] = await pool.query(sql, values)
       return rows
     } catch (err) {
