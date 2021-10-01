@@ -178,7 +178,7 @@ const userController = {
     const { userId } = req.params
     const { limit, offset, cursor, tag } = req.query
     const options = {
-      limit,
+      limit: limit || 20,
       offset,
       cursor,
       tag,
@@ -261,9 +261,20 @@ const userController = {
 
   getTrails: async (req, res, next) => {
     const { userId } = req.params
+    const { location, altitude, length, difficult, limit, offset, cursor } = req.query
+
+    const options = {
+      location,
+      altitude,
+      length,
+      difficult,
+      limit,
+      offset,
+      cursor,
+    }
 
     try {
-      const trails = await trailModel.findByUserId(userId)
+      const trails = await trailModel.findByUserId(userId, options)
       res.json({
         success: true,
         message: `trails wrote by user ${userId}`,
@@ -276,9 +287,20 @@ const userController = {
 
   getCollectedTrails: async (req, res, next) => {
     const { userId } = req.params
+    const { location, altitude, length, difficult, limit, offset, cursor } = req.query
+
+    const options = {
+      location,
+      altitude,
+      length,
+      difficult,
+      limit,
+      offset,
+      cursor,
+    }
 
     try {
-      const trails = await trailModel.findByUserCollect(userId)
+      const trails = await trailModel.findByUserCollect(userId, options)
       res.json({
         success: true,
         message: `trails collected by user ${userId}`,

@@ -1,31 +1,77 @@
 const pool = require('../db').promise()
 const { generalLogger: logger } = require('../logger')
 
+function appendPaginationAndFilterSuffix(sql, values, options) {
+  function appendFilterSuffix(mode = 'AND', operator = '=', injectValues, columnName) {
+    if (injectValues?.length > 0) {
+      const clause = Array(injectValues.length).fill('?').join(` ${mode} ${columnName} ${operator} `)
+      sql += ` AND (${columnName} ${operator} ${clause})`
+      values = values.concat(injectValues)
+    }
+    return { sql, values }
+  }
+
+  const { cursor, offset, difficult, altitude, length, location, limit } = options
+  if (cursor) {
+    sql += ' AND trail_id >= ?'
+    values.push(cursor)
+  } else if (offset) {
+    sql += ' AND trail_id >= (SELECT trail_id FROM trails LIMIT 1 OFFSET ?)'
+    values.push(offset)
+  }
+
+  appendFilterSuffix('OR', '=', difficult, 'difficulty')
+  appendFilterSuffix(
+    'OR',
+    'LIKE',
+    location?.map((loc) => `%${loc}%`),
+    'location'
+  )
+  appendFilterSuffix('AND', '>', altitude?.gt, 'altitude')
+  appendFilterSuffix('AND', '<', altitude?.lt, 'altitude')
+  appendFilterSuffix('AND', '>', length?.gt, 'length')
+  appendFilterSuffix('AND', '<', length?.lt, 'length')
+
+  if (limit) {
+    sql += ' LIMIT ?'
+    values.push(limit)
+  }
+
+  return { sql, values }
+}
+
 const trailModel = {
-  findByUserId: async (userId) => {
-    const sql = `SELECT * FROM trails WHERE author_id = ?;`
+  findByUserId: async (userId, options) => {
+    const sql = `SELECT * FROM trails WHERE author_id = ?`
     const values = [userId]
 
+    const result = appendPaginationAndFilterSuffix(sql, values, options)
+
+    result.sql += ';'
     try {
-      logger.debug(sql)
-      const [rows, fields] = await pool.query(sql, values)
+      logger.debug(result.sql)
+      const [rows, fields] = await pool.query(result.sql, result.values)
       return rows
     } catch (err) {
       throw err
     }
   },
 
-  findByUserCollect: async (userId) => {
+  findByUserCollect: async (userId, options) => {
     const sql = `SELECT *
                 FROM trails
                 WHERE trail_id IN (
                   SELECT trail_id
                   FROM collects
-                  WHERE user_id = ?);`
+                  WHERE user_id = ?)`
     const values = [userId]
 
+    const result = appendPaginationAndFilterSuffix(sql, values, options)
+    result.sql += ';'
+
     try {
-      const [rows, fields] = await pool.query(sql, values)
+      logger.debug(result.sql)
+      const [rows, fields] = await pool.query(result.sql, result.values)
       return rows
     } catch (err) {
       throw err
@@ -41,6 +87,7 @@ const trailModel = {
     const values = [userId, trailId, userId, trailId]
 
     try {
+      logger.debug(result.sql)
       const [rows, fields] = await pool.query(sql, values)
       return rows
     } catch (err) {
@@ -54,6 +101,7 @@ const trailModel = {
     const values = [userId, trailId]
 
     try {
+      logger.debug(result.sql)
       const [rows, fields] = await pool.query(sql, values)
       return rows
     } catch (err) {

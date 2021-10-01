@@ -115,10 +115,47 @@ const articleModel = {
     }
 
     sql += ';'
-    console.log(`sql: ${sql}, values: ${values}`)
     sendQuery(sql, values, cb)
   },
 
+  getQueryValues: (options, sqlQueries, originValues) => {
+    let sql = sqlQueries.origin
+    const values = [...originValues]
+
+    if (options.tag) {
+      const tagNameClause = Array(options.tag.length).fill('?').join(' OR T.tag_name = ')
+      sql = sql.replace('WHERE L.user_id = ?', '').replace('GROUP BY A.article_id', '')
+      sql += `LEFT JOIN article_tag_map AS M
+              USING(article_id)
+              LEFT JOIN tags AS T
+              USING(tag_id)
+              WHERE L.user_id = ?
+              AND (T.tag_name = ${tagNameClause})
+              GROUP BY A.article_id`
+      options.tag.forEach((value) => values.push(value))
+    }
+
+    if (options.limit) {
+      if (options.cursor) {
+        sql = sql.replace(
+          'GROUP BY A.article_id',
+          `AND A.article_id >= ?
+          GROUP BY A.article_id`
+        )
+        values.push(options.cursor)
+      } else if (options.offset || options.offset === 0) {
+        sql += ' LIMIT ? OFFSET ?'
+        values.push(options.limit)
+        values.push(options.offset)
+      } else {
+        sql += ' LIMIT ?'
+        values.push(options.limit)
+      }
+    }
+
+    sql += ';'
+    return { sql, values }
+  },
   findByUserLike: (userId, options, cb) => {
     if (options instanceof Function) {
       cb = options
