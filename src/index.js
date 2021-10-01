@@ -27,7 +27,12 @@ app.use((err, req, res, next) => {
   let status = 500
 
   // request header Content-Type 是 application/json，但 body 不是 json 格式時發生的錯誤
-  if (req.is('application/json') && err instanceof SyntaxError && err.statusCode === 400 && 'body' in err) {
+  if (
+    req.is('application/json') &&
+    err instanceof SyntaxError &&
+    err.statusCode === 400 &&
+    'body' in err
+  ) {
     msg = `Input instances are not in JSON format.`
     status = 400
   }

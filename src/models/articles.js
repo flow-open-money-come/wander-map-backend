@@ -11,66 +11,84 @@ function sendQuery(sql, values, cb) {
 
 const articleModel = {
   add: (article, cb) => {
-    db.query(
-      `INSERT INTO articles(author_id, title, content, 
+    const sql = `INSERT INTO articles(author_id, title, content, 
         location, coordinate, altitude, length, departure_time, 
         end_time, time_spent, cover_picture_url, gpx_url)
-      VALUES (?, ?, ?, ?, ST_PointFromText("POINT(? ?)"), ?, ?, ?, ?, ?, ?, ?)`,
-      [article.author, article.title, article.content, article.location, Number(article.coordinateX), Number(article.coordinateY), article.altitude, article.length, article.departure_time, article.end_time, article.time_spent, article.cover_picture, article.gpx],
-      (err, results) => {
-        if (err) return cb(err)
-        cb(null, results)
-      }
-    )
+      VALUES (?, ?, ?, ?, ST_PointFromText("POINT(? ?)"), ?, ?, ?, ?, ?, ?, ?)`
+    const values = [
+      article.author_id,
+      article.title,
+      article.content,
+      article.location,
+      Number(article.coordinateX),
+      Number(article.coordinateY),
+      article.altitude,
+      article.length,
+      article.departure_time,
+      article.end_time,
+      article.time_spent,
+      article.cover_picture_url,
+      article.gpx_url,
+    ]
+    sendQuery(sql, values, cb)
   },
 
   findAll: (cb) => {
-    db.query('SELECT * FROM articles', (err, results) => {
-      if (err) return cb(err)
-      cb(null, results)
-    })
+    const sql = 'SELECT * FROM articles WHERE is_deleted = 0'
+    sendQuery(sql, cb)
   },
 
-  findByViews: (cb) => {
-    db.query('SELECT * FROM articles ORDER BY views DESC LIMIT 5', (err, results) => {
-      if (err) return cb(err)
-      cb(null, results)
-    })
+  findByLikes: (cb) => {
+    const sql =
+      'SELECT article_id, COUNT (article_id) FROM likes GROUP BY article_id ORDER BY COUNT (article_id) DESC LIMIT 5'
+    sendQuery(sql, cb)
   },
 
   findById: (id, cb) => {
-    db.query('SELECT * FROM articles WHERE article_id = ?', [id], (err, results) => {
-      if (err) return cb(err)
-      cb(null, results)
-    })
+    const sql = 'SELECT * FROM articles WHERE is_deleted = 0 AND article_id = ?'
+    const values = [id]
+    sendQuery(sql, values, cb)
   },
 
   update: (id, article, cb) => {
-    db.query(
-      `UPDATE articles SET author_id = ?, title = ?, content = ?, 
-      location = ?, coordinate = ST_pointfromtext("POINT(? ?)"), altitude = ?, length = ?, departure_time = ?, 
-      end_time = ?, time_spent = ?, cover_picture_url = ?, gpx_url  = ?
-      WHERE article_id = ?`,
-      [article.author, article.title, article.content, article.location, Number(article.coordinateX), Number(article.coordinateY), article.altitude, article.length, article.departure_time, article.end_time, article.time_spent, article.cover_picture, article.gpx, id],
-      (err, results) => {
-        if (err) return cb(err)
-        cb(null, results)
-      }
-    )
+    let values = []
+    let sql = `UPDATE articles SET `
+    sql +=
+      Object.keys(article)
+        .filter((data) => (data !== 'coordinateX') & (data !== 'coordinateY'))
+        .join(' = ?, ') + ` = ? `
+
+    if (article.coordinateX && article.coordinateY) {
+      sql +=
+        `, coordinate = ST_pointfromtext("POINT(? ?)")` +
+        ` WHERE article_id = ?`
+      values = Object.values(article).filter(
+        (data) => data !== article.coordinateX && data !== article.coordinateY
+      )
+      values.push(Number(article.coordinateX))
+      values.push(Number(article.coordinateY))
+      values.push(id)
+    } else {
+      sql += `WHERE article_id = ?`
+      values = Object.values(article).filter(
+        (data) => data !== article.coordinateX && data !== article.coordinateY
+      )
+      values.push(id)
+    }
+
+    sendQuery(sql, values, cb)
   },
 
   delete: (id, cb) => {
-    db.query(`UPDATE articles SET is_deleted = ? WHERE article_id = ?`, [1, id], (err, results) => {
-      if (err) return cb(err)
-      cb(null, results)
-    })
+    const sql = `UPDATE articles SET is_deleted = ? WHERE article_id = ?`
+    const values = [1, id]
+    sendQuery(sql, values, cb)
   },
 
   findCommentsById: (id, author, cb) => {
-    db.query(`SELECT * FROM messages WHERE article_id = ? AND author_id = ?`, [id, author], (err, results) => {
-      if (err) return cb(err)
-      cb(null, results)
-    })
+    const sql = `SELECT * FROM messages WHERE article_id = ? AND author_id = ? AND is_deleted = 0`
+    const values = [id, author]
+    sendQuery(sql, values, cb)
   },
 
   findByUserId: (userId, cb) => {
