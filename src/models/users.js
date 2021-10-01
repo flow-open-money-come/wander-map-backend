@@ -61,7 +61,6 @@ const userModel = {
     }
 
     if (where) {
-      // todo: 實作 gt、lt、eq && OR、AND
       let clauseBegin = 'WHERE'
       let limit = null
 
