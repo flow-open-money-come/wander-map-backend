@@ -1,7 +1,7 @@
 const pool = require('../db').promise()
 const { generalLogger: logger } = require('../logger')
 
-function appendPaginationAndFilterSuffix(sql, values, options) {
+function getPaginationAndFilterSuffix(options) {
   function appendFilterSuffix(mode = 'AND', operator = '=', injectValues, columnName) {
     if (injectValues?.length > 0) {
       const clause = Array(injectValues.length).fill('?').join(` ${mode} ${columnName} ${operator} `)
@@ -11,6 +11,8 @@ function appendPaginationAndFilterSuffix(sql, values, options) {
     return { sql, values }
   }
 
+  let sql = ''
+  let values = []
   const { cursor, offset, difficult, altitude, length, location, limit } = options
   if (cursor) {
     sql += ' AND trail_id >= ?'
@@ -42,15 +44,16 @@ function appendPaginationAndFilterSuffix(sql, values, options) {
 
 const trailModel = {
   findByUserId: async (userId, options) => {
-    const sql = `SELECT * FROM trails WHERE author_id = ?`
-    const values = [userId]
+    let sql = `SELECT * FROM trails WHERE author_id = ?`
+    let values = [userId]
 
-    const result = appendPaginationAndFilterSuffix(sql, values, options)
+    const result = getPaginationAndFilterSuffix(options)
+    sql += result.sql + ';'
+    values = values.concat(result.values)
 
-    result.sql += ';'
     try {
-      logger.debug(result.sql)
-      const [rows, fields] = await pool.query(result.sql, result.values)
+      logger.debug(sql)
+      const [rows, fields] = await pool.query(sql, values)
       return rows
     } catch (err) {
       throw err
@@ -58,20 +61,21 @@ const trailModel = {
   },
 
   findByUserCollect: async (userId, options) => {
-    const sql = `SELECT *
+    let sql = `SELECT *
                 FROM trails
                 WHERE trail_id IN (
                   SELECT trail_id
                   FROM collects
                   WHERE user_id = ?)`
-    const values = [userId]
+    let values = [userId]
 
-    const result = appendPaginationAndFilterSuffix(sql, values, options)
-    result.sql += ';'
+    const result = getPaginationAndFilterSuffix(options)
+    sql += result.sql + ';'
+    values = values.concat(result.values)
 
     try {
-      logger.debug(result.sql)
-      const [rows, fields] = await pool.query(result.sql, result.values)
+      logger.debug(sql)
+      const [rows, fields] = await pool.query(sql, values)
       return rows
     } catch (err) {
       throw err
