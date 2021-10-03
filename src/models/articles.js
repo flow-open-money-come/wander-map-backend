@@ -9,6 +9,30 @@ function sendQuery(sql, values, cb) {
   })
 }
 
+function getArticlePaginationSuffix(options) {
+  let sql = ''
+  const values = []
+
+  if (options.limit) {
+    if (options.cursor) {
+      sql += ` AND article_id >= ?
+              GROUP BY A.article_id
+              LIMIT ?`
+      values.push(options.cursor)
+      values.push(options.limit)
+    } else if (options.offset || options.offset === 0) {
+      sql += ' LIMIT ? OFFSET ?'
+      values.push(options.limit)
+      values.push(options.offset)
+    } else {
+      sql += ' LIMIT ?'
+      values.push(options.limit)
+    }
+  }
+
+  return { sql, values }
+}
+
 const articleModel = {
   add: (article, cb) => {
     db.query(
@@ -73,20 +97,69 @@ const articleModel = {
     })
   },
 
-  findByUserId: (userId, cb) => {
-    const sql = `SELECT * FROM articles WHERE author_id = ?`
-    const values = [userId]
+  findByUserId: (userId, options, cb) => {
+    if (options instanceof Function) {
+      cb = options
+      options = undefined
+    }
+
+    let sql = `SELECT * FROM articles WHERE author_id = ?`
+    let values = [userId]
+
+    if (options.tag) {
+      const tagNameClause = Array(options.tag.length).fill('?').join(' OR T.tag_name = ')
+      sql = `SELECT A.*
+            FROM articles AS A
+            LEFT JOIN article_tag_map AS M
+            USING(article_id)
+            LEFT JOIN tags AS T
+            USING(tag_id)
+            WHERE A.author_id = ?
+            AND (T.tag_name = ${tagNameClause})
+            GROUP BY A.article_id`
+      options.tag.forEach((value) => values.push(value))
+    }
+
+    const suffix = getArticlePaginationSuffix(options)
+    if (/GROUP BY A.article_id/.test(suffix.sql)) sql = sql.replace('GROUP BY A.article_id', '')
+    sql += suffix.sql + ';'
+    values = values.concat(suffix.values)
+
     sendQuery(sql, values, cb)
   },
 
-  findByUserLike: (userId, cb) => {
-    const sql = `SELECT * 
-                FROM articles 
-                WHERE article_id IN (
-                  SELECT article_id 
-                  FROM likes 
-                  WHERE user_id = ?);`
-    const values = [userId]
+  findByUserLike: (userId, options, cb) => {
+    if (options instanceof Function) {
+      cb = options
+      options = undefined
+    }
+
+    let sql = `SELECT A.*
+              FROM likes AS L
+              LEFT JOIN articles AS A
+              USING(article_id)
+              WHERE L.user_id = ?
+              GROUP BY A.article_id`
+    let values = [userId]
+
+    if (options.tag) {
+      const tagNameClause = Array(options.tag.length).fill('?').join(' OR T.tag_name = ')
+      sql = sql.replace('WHERE L.user_id = ?', '').replace('GROUP BY A.article_id', '')
+      sql += `LEFT JOIN article_tag_map AS M
+              USING(article_id)
+              LEFT JOIN tags AS T
+              USING(tag_id)
+              WHERE L.user_id = ?
+              AND (T.tag_name = ${tagNameClause})
+              GROUP BY A.article_id`
+      options.tag.forEach((value) => values.push(value))
+    }
+
+    const suffix = getArticlePaginationSuffix(options)
+    if (/GROUP BY A.article_id/.test(suffix.sql)) sql = sql.replace('GROUP BY A.article_id', '')
+    sql += suffix.sql + ';'
+    values = values.concat(suffix.values)
+
     sendQuery(sql, values, cb)
   },
 
