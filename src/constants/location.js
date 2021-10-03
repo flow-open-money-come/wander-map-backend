@@ -6,4 +6,6 @@ const TAIWAN_LOCATION = {
   island: ['金門縣', '連江縣'],
 }
 
-module.exports = TAIWAN_LOCATION
+module.exports = {
+  TAIWAN_LOCATION,
+}

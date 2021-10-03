@@ -16,7 +16,7 @@ const articleController = {
       res.json({
         success: true,
         message: 'OK',
-        data: article,
+        data: results,
       })
     })
   },
@@ -58,10 +58,6 @@ const articleController = {
   updateArticle: (req, res, next) => {
     const { id } = req.params
     const article = req.body
-
-    if (!article.author_id) {
-      return res.status(403).json(INVALID_INPUT)
-    }
 
     articleModel.update(id, article, (err, results) => {
       if (err) return next(err)
