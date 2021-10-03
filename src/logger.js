@@ -10,18 +10,7 @@ const generalFormat = printf(({ level, message, timestamp, label, stack }) => {
   return `[${timestamp}] [${level.toUpperCase()}] ${label}: ${message}`
 })
 
-const requestFormat = printf(({
-  level,
-  message,
-  timestamp,
-  label,
-  ip,
-  method,
-  originalUrl,
-  httpVersion,
-  statusCode,
-  referrer
-}) => {
+const requestFormat = printf(({ level, message, timestamp, label, ip, method, originalUrl, httpVersion, statusCode, referrer }) => {
   return `[${timestamp}] [${level.toUpperCase()}] ${label}: ${message} ${ip} ${method} ${originalUrl} HTTP/${httpVersion} ${statusCode} ${referrer}`
 })
 
@@ -32,7 +21,7 @@ const transportConfig = {
   zippedArchive: true,
   maxSize: '20m',
   maxFiles: '14d',
-  level: 'debug'
+  level: 'debug',
 }
 const combinedRotateTransport = new transports.DailyRotateFile(transportConfig)
 
@@ -41,29 +30,13 @@ transportConfig.level = 'error'
 const errorRotateTransport = new transports.DailyRotateFile(transportConfig)
 
 const generalLogger = createLogger({
-  format: combine(
-    appLabel,
-    timestamp(),
-    errors({ stack: true }),
-    generalFormat
-  ),
-  transports: [
-    combinedRotateTransport,
-    errorRotateTransport,
-  ]
+  format: combine(appLabel, timestamp(), errors({ stack: true }), generalFormat),
+  transports: [combinedRotateTransport, errorRotateTransport],
 })
 
 const requestLogger = createLogger({
-  format: combine(
-    appLabel,
-    timestamp(),
-    errors({ stack: true }),
-    requestFormat
-  ),
-  transports: [
-    combinedRotateTransport,
-    errorRotateTransport
-  ]
+  format: combine(appLabel, timestamp(), errors({ stack: true }), requestFormat),
+  transports: [combinedRotateTransport, errorRotateTransport],
 })
 
 if (process.env.NODE_ENV !== 'production') {
@@ -73,5 +46,5 @@ if (process.env.NODE_ENV !== 'production') {
 
 module.exports = {
   generalLogger,
-  requestLogger
+  requestLogger,
 }
