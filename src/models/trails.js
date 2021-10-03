@@ -43,6 +43,90 @@ function getPaginationAndFilterSuffix(options) {
 }
 
 const trailModel = {
+  findAll: async () => {
+    const sql = `SELECT * FROM trails`
+    try {
+      const [rows, fields] = await pool.query(sql)
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
+  findOne: async (id) => {
+    const sql = `SELECT * FROM trails WHERE trail_id = ?`
+
+    try {
+      const [rows, fields] = await pool.query(sql, id)
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
+  add: async (trailInfo) => {
+    const sql = `INSERT INTO trails(author_id, title, description, location, altitude, length, situation, season, difficulty, coordinate, cover_picture_url, map_picture_url, required_time) VALUE (?, ?, ?, ?, ?, ?, ?, ?, ?, ST_PointFromText("POINT(? ?)"), ?, ?, ?)`
+    try {
+      const [rows, fields] = await pool.query(sql, [
+        trailInfo.author_id,
+        trailInfo.title,
+        trailInfo.description,
+        trailInfo.location,
+        trailInfo.altitude,
+        trailInfo.length,
+        trailInfo.situation,
+        trailInfo.season,
+        trailInfo.difficulty,
+        Number(trailInfo.coordinateX),
+        Number(trailInfo.coordinateY),
+        trailInfo.cover_picture_url,
+        trailInfo.map_picture_url,
+        trailInfo.required_time
+      ])
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
+  update: async (id, trailInfo) => {
+    const sql = `UPDATE trails SET author_id = ?, title = ?, description = ?, 
+      location = ?, altitude = ?,  length = ?, situation = ? , season = ? , difficulty = ?, coordinate = ST_PointFromText("POINT(? ?)"), cover_picture_url = ?, map_picture_url  = ? , required_time = ? 
+      WHERE trail_id = ?`
+    try {
+      const [rows, fields] = await pool.query(sql, [
+        trailInfo.author_id,
+        trailInfo.title,
+        trailInfo.description,
+        trailInfo.location,
+        trailInfo.altitude,
+        trailInfo.length,
+        trailInfo.situation,
+        trailInfo.season,
+        trailInfo.difficulty,
+        Number(trailInfo.coordinateX),
+        Number(trailInfo.coordinateY),
+        trailInfo.cover_picture_url,
+        trailInfo.map_picture_url,
+        trailInfo.required_time,
+        id
+      ])
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
+  delete: async (id) => {
+    const sql = `UPDATE trails SET is_deleted = ? WHERE trail_id = ?`
+    try {
+      const [rows, fields] = await pool.query(sql, [1, id])
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
   findByUserId: async (userId, options) => {
     let sql = `SELECT * FROM trails WHERE author_id = ?`
     let values = [userId]
@@ -111,7 +195,7 @@ const trailModel = {
     } catch (err) {
       throw err
     }
-  },
+  }
 }
 
 module.exports = trailModel
