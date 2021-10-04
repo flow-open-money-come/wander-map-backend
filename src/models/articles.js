@@ -35,66 +35,81 @@ function getArticlePaginationSuffix(options) {
 
 const articleModel = {
   add: (article, cb) => {
-    db.query(
-      `INSERT INTO articles(author_id, title, content, 
-        location, coordinate, altitude, length, departure_time, 
-        end_time, time_spent, cover_picture_url, gpx_url)
-      VALUES (?, ?, ?, ?, ST_PointFromText("POINT(? ?)"), ?, ?, ?, ?, ?, ?, ?)`,
-      [article.author, article.title, article.content, article.location, Number(article.coordinateX), Number(article.coordinateY), article.altitude, article.length, article.departure_time, article.end_time, article.time_spent, article.cover_picture, article.gpx],
-      (err, results) => {
-        if (err) return cb(err)
-        cb(null, results)
-      }
-    )
+    // author_id, title, content, location, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url
+    let coordinate
+    if (article.coordinate) {
+      coordinate = article.coordinate
+      delete article.coordinate
+    }
+    const articlePropertyNames = Object.keys(article)
+    let sql = `INSERT INTO articles(${articlePropertyNames.join(', ')})
+                VALUES (${Array(articlePropertyNames.length).fill('?').join(', ')})`
+    let values = Object.values(article)
+
+    const coordinatePattern = /[ ]?coordinate[, ]?/
+    if ((coordinate?.x || coordinate?.x) === 0 && (coordinate?.y || coordinate?.y === 0)) {
+      sql = sql.replace(coordinatePattern, '').replace(')', ', coordinate)').replace('?)', '?, ST_PointFromText("POINT(? ?)"))')
+      values = values.concat([Number(coordinate.x), Number(coordinate.y)])
+    }
+    sql += ';'
+    sendQuery(sql, values, cb)
   },
 
   findAll: (cb) => {
-    db.query('SELECT * FROM articles', (err, results) => {
-      if (err) return cb(err)
-      cb(null, results)
-    })
+    const sql = 'SELECT * FROM articles WHERE is_deleted = 0'
+    sendQuery(sql, cb)
   },
 
-  findByViews: (cb) => {
-    db.query('SELECT * FROM articles ORDER BY views DESC LIMIT 5', (err, results) => {
-      if (err) return cb(err)
-      cb(null, results)
-    })
+  findByLikes: (cb) => {
+    const sql = `SELECT A.*
+                FROM (
+                  SELECT article_id, COUNT(article_id) AS count
+                    FROM final_project_dev.likes
+                    GROUP BY article_id
+                    ORDER BY count DESC LIMIT 5
+                    ) AS L
+                LEFT JOIN final_project_dev.articles AS A
+                USING(article_id);`
+    sendQuery(sql, cb)
   },
 
   findById: (id, cb) => {
-    db.query('SELECT * FROM articles WHERE article_id = ?', [id], (err, results) => {
-      if (err) return cb(err)
-      cb(null, results)
-    })
+    const sql = 'SELECT * FROM articles WHERE is_deleted = 0 AND article_id = ?'
+    const values = [id]
+    sendQuery(sql, values, cb)
   },
 
   update: (id, article, cb) => {
-    db.query(
-      `UPDATE articles SET author_id = ?, title = ?, content = ?, 
-      location = ?, coordinate = ST_pointfromtext("POINT(? ?)"), altitude = ?, length = ?, departure_time = ?, 
-      end_time = ?, time_spent = ?, cover_picture_url = ?, gpx_url  = ?
-      WHERE article_id = ?`,
-      [article.author, article.title, article.content, article.location, Number(article.coordinateX), Number(article.coordinateY), article.altitude, article.length, article.departure_time, article.end_time, article.time_spent, article.cover_picture, article.gpx, id],
-      (err, results) => {
-        if (err) return cb(err)
-        cb(null, results)
-      }
-    )
+    let values = []
+    let sql = `UPDATE articles SET `
+    sql +=
+      Object.keys(article)
+        .filter((data) => data !== 'coordinate')
+        .join(' = ?, ') + ` = ? `
+    values = Object.values(article).filter((data) => data !== article.coordinate)
+
+    if ((article.coordinate?.x || article.coordinate?.x === 0) && (article.coordinate?.y || article.coordinate?.y === 0)) {
+      sql += `, coordinate = ST_PointFromText("POINT(? ?)") WHERE article_id = ?`
+      values = values.concat([Number(article.coordinate.x), Number(article.coordinate.y)])
+      values.push(id)
+    } else {
+      sql += `WHERE article_id = ?`
+      values.push(id)
+    }
+
+    sendQuery(sql, values, cb)
   },
 
   delete: (id, cb) => {
-    db.query(`UPDATE articles SET is_deleted = ? WHERE article_id = ?`, [1, id], (err, results) => {
-      if (err) return cb(err)
-      cb(null, results)
-    })
+    const sql = `UPDATE articles SET is_deleted = ? WHERE article_id = ?`
+    const values = [1, id]
+    sendQuery(sql, values, cb)
   },
 
   findCommentsById: (id, author, cb) => {
-    db.query(`SELECT * FROM messages WHERE article_id = ? AND author_id = ?`, [id, author], (err, results) => {
-      if (err) return cb(err)
-      cb(null, results)
-    })
+    const sql = `SELECT * FROM messages WHERE article_id = ? AND is_deleted = 0`
+    const values = [id, author]
+    sendQuery(sql, values, cb)
   },
 
   findByUserId: (userId, options, cb) => {
