@@ -8,7 +8,6 @@
 
 1. 把 `.env.example` 改名成 `.env`，填入等號後面的值
 2. `npm install`：安裝所需套件。
-3. ~~`npm run build`：把資料鍵入資料庫~~
 
 ## 開發
 
@@ -28,7 +27,9 @@
 
 `docker run -dp <host_port>:<container_port> --name <container_name> --env-file ./.env <image_name>`：從 image 建立 container，並讀入環境變數。
 
-`docker-compose up`：由 docker-compose.yml 一次建立多個 container。
+`docker-compose up -d`：由 docker-compose.yml 一次建立多個 container，並在背景執行。
+
+`docker-compose down`：停止 docker-compose。
 
 ## 專案架構
 
