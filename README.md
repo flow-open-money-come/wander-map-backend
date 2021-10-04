@@ -16,6 +16,20 @@
 
 `npm run dev`：測試用
 
+## Docker
+
+### 安裝 docker
+
+### 安裝 docker-compose
+
+### 執行
+
+`docker build -t <image_name> .`：從 Dockerfile 建立 image。
+
+`docker run -dp <host_port>:<container_port> --name <container_name> --env-file ./.env <image_name>`：從 image 建立 container，並讀入環境變數。
+
+`docker-compose up`：由 docker-compose.yml 一次建立多個 container。
+
 ## 專案架構
 
 ```shell
