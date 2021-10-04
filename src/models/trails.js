@@ -44,7 +44,7 @@ function getPaginationAndFilterSuffix(options) {
 
 const trailModel = {
   findAll: async () => {
-    const sql = `SELECT * FROM trails`
+    const sql = `SELECT * FROM trails WHERE is_deleted = 0`
     try {
       const [rows, fields] = await pool.query(sql)
       return rows
@@ -54,7 +54,7 @@ const trailModel = {
   },
 
   findOne: async (id) => {
-    const sql = `SELECT * FROM trails WHERE trail_id = ?`
+    const sql = `SELECT * FROM trails WHERE trail_id = ? AND is_deleted = 0`
 
     try {
       const [rows, fields] = await pool.query(sql, id)
@@ -91,7 +91,7 @@ const trailModel = {
 
   update: async (id, trailInfo) => {
     const sql = `UPDATE trails SET author_id = ?, title = ?, description = ?, 
-      location = ?, altitude = ?,  length = ?, situation = ? , season = ? , difficulty = ?, coordinate = ST_PointFromText("POINT(? ?)"), cover_picture_url = ?, map_picture_url  = ? , required_time = ? 
+      location = ?, altitude = ?,  length = ?, situation = ? , season = ? , difficulty = ?, coordinate = ST_PointFromText("POINT(? ?)"), cover_picture_url = ?, map_picture_url  = ? , required_time = ? , is_deleted = ?
       WHERE trail_id = ?`
     try {
       const [rows, fields] = await pool.query(sql, [
@@ -109,6 +109,7 @@ const trailModel = {
         trailInfo.cover_picture_url,
         trailInfo.map_picture_url,
         trailInfo.required_time,
+        trailInfo.is_deleted,
         id
       ])
       return rows
