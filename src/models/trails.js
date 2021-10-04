@@ -13,7 +13,7 @@ function getPaginationAndFilterSuffix(options) {
 
   let sql = ''
   let values = []
-  const { cursor, offset, difficult, altitude, length, location, limit } = options
+  const { cursor, offset, difficult, altitude, length, location, limit, search } = options
   if (cursor) {
     sql += ' AND trail_id >= ?'
     values.push(cursor)
@@ -34,6 +34,11 @@ function getPaginationAndFilterSuffix(options) {
   appendFilterSuffix('AND', '>', length?.gt, 'length')
   appendFilterSuffix('AND', '<', length?.lt, 'length')
 
+  if (search) {
+    sql += ' AND title LIKE ?'
+    values.push(`%${search}%`)
+  }
+
   if (limit) {
     sql += ' LIMIT ?'
     values.push(limit)
@@ -43,19 +48,24 @@ function getPaginationAndFilterSuffix(options) {
 }
 
 const trailModel = {
-  findAll: async () => {
-    const sql = `SELECT * FROM trails WHERE is_deleted = 0`
+  findAll: async (options) => {
+    let sql = `SELECT * FROM trails WHERE is_deleted = 0`
+    let values = []
+
+    const suffix = getPaginationAndFilterSuffix(options)
+    sql += suffix.sql + ';'
+    values = values.concat(suffix.values)
+
     try {
-      const [rows, fields] = await pool.query(sql)
+      const [rows, fields] = await pool.query(sql, values)
       return rows
     } catch (err) {
       throw err
     }
   },
 
-  findOne: async (id) => {
-    const sql = `SELECT * FROM trails WHERE trail_id = ? AND is_deleted = 0`
-
+  findById: async (id) => {
+    const sql = 'SELECT * FROM trails WHERE trail_id = ? AND is_deleted = 0'
     try {
       const [rows, fields] = await pool.query(sql, id)
       return rows
@@ -122,6 +132,34 @@ const trailModel = {
     const sql = `UPDATE trails SET is_deleted = ? WHERE trail_id = ?`
     try {
       const [rows, fields] = await pool.query(sql, [1, id])
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
+  findByCollects: async () => {
+    const sql = `SELECT T.*
+                FROM (
+                  SELECT trail_id, COUNT(trail_id) AS count
+                    FROM final_project_dev.collects
+                    GROUP BY trail_id
+                    ORDER BY count DESC LIMIT 5
+                    ) AS L
+                LEFT JOIN trails AS T
+                USING(trail_id);`
+    try {
+      const [rows, fields] = await pool.query(sql)
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
+  findCommentsByTrailId: async (id) => {
+    const sql = `SELECT * FROM comments WHERE trail_id = ?`
+    try {
+      const [rows, fields] = await pool.query(sql, id)
       return rows
     } catch (err) {
       throw err
