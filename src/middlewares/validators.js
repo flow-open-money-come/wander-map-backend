@@ -12,7 +12,10 @@ function handleValidationResult(req, res, next) {
 }
 
 const validators = {
-  paramValidator: [param('*', 'id in params must be integer').toInt().isInt(), handleValidationResult],
+  paramValidator: [
+    param('*', 'id in params must be integer').toInt().isInt(),
+    handleValidationResult
+  ],
 
   paginationAndSearchValidator: [
     query('limit')
@@ -38,7 +41,10 @@ const validators = {
           return cities
         }, [])
       }),
-    query('altitude', 'should be in the format of "altitude[gt]=1000" or "altitude[lt]=2000" to filter')
+    query(
+      'altitude',
+      'should be in the format of "altitude[gt]=1000" or "altitude[lt]=2000" to filter'
+    )
       .optional()
       .isObject()
       .customSanitizer((altitude) => {
@@ -82,15 +88,20 @@ const validators = {
       .optional()
       .toArray()
       .customSanitizer((difficult) => {
-        return difficult.map((ele) => parseInt(ele, 10)).filter((ele) => ele && ele >= 1 && ele <= 5)
+        return difficult
+          .map((ele) => parseInt(ele, 10))
+          .filter((ele) => ele && ele >= 1 && ele <= 5)
       }),
-    handleValidationResult,
+    handleValidationResult
   ],
 
   registerValidator: [
     body('nickname', 'nickname must not be empty').trim().notEmpty(),
     body('email', 'email format error').trim().normalizeEmail().isEmail(),
-    body('password', 'Password must be at least 8 characters long and include at least 1 number & 1 alphabetical character')
+    body(
+      'password',
+      'Password must be at least 8 characters long and include at least 1 number & 1 alphabetical character'
+    )
       .trim()
       .custom((value) => {
         const passwordFormat = new RegExp(/(?=.*\d)(?=.*[a-zA-Z])^[a-zA-Z0-9!@#$%^&*]{8,}$/)
@@ -99,7 +110,7 @@ const validators = {
     body('confirmPassword', 'Password and confirm password does not match')
       .trim()
       .custom((value, { req }) => value === req.body.password),
-    handleValidationResult,
+    handleValidationResult
   ],
 
   loginValidator: [body('email').trim(), body('password').trim(), handleValidationResult],
@@ -108,7 +119,10 @@ const validators = {
     body('nickname').optional().trim().notEmpty(),
     body('iconUrl').optional().trim().notEmpty(),
     body('role').optional().trim().notEmpty(),
-    body('password', 'Password must be at least 8 characters long and include at least 1 number & 1 alphabetical character')
+    body(
+      'password',
+      'Password must be at least 8 characters long and include at least 1 number & 1 alphabetical character'
+    )
       .optional()
       .trim()
       .custom((value) => {
@@ -119,13 +133,40 @@ const validators = {
       .optional()
       .trim()
       .custom((value, { req }) => value === req.body.password),
-    handleValidationResult,
+    handleValidationResult
   ],
 
-  postTodoValidator: [body('content', 'content is required').exists({ checkNull: true }).trim(), handleValidationResult],
+  postTodoValidator: [
+    body('content', 'content is required').exists({ checkNull: true }).trim(),
+    handleValidationResult
+  ],
   editTodoValidator: [body('isDone').optional().trim().toInt(), handleValidationResult],
-  likedArticleValidator: [body('articleId', 'articleId must be integer').trim().toInt().isInt({ min: 1 }), handleValidationResult],
-  collectedTrailsValidator: [body('trailId', 'trailId must be integer').trim().toInt().isInt({ min: 1 }), handleValidationResult],
+  likedArticleValidator: [
+    body('articleId', 'articleId must be integer').trim().toInt().isInt({ min: 1 }),
+    handleValidationResult
+  ],
+  collectedTrailsValidator: [
+    body('trailId', 'trailId must be integer').trim().toInt().isInt({ min: 1 }),
+    handleValidationResult
+  ],
+
+  postTrailsValidator: [
+    body('author_id').trim().notEmpty(),
+    body('title').trim().notEmpty(),
+    body('description').trim().notEmpty(),
+    body('location').trim().notEmpty(),
+    body('coordinateX').trim().notEmpty(),
+    body('coordinateY').trim().notEmpty(),
+    body('altitude').trim().notEmpty().isInt(),
+    body('length').trim().notEmpty().isFloat({ min: 0 }),
+    body('difficulty').trim().notEmpty().isInt({ min: 1, max: 5 }),
+    body('season').trim().notEmpty(),
+    body('cover_picture_url').trim().notEmpty(),
+    body('map_picture_url').trim().optional(),
+    body('situation').trim().notEmpty(),
+    body('required_time').trim().notEmpty(),
+    handleValidationResult
+  ]
 }
 
 module.exports = validators
