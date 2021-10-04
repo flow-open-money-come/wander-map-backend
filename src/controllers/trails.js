@@ -28,20 +28,6 @@ const trailsController = {
     }
   },
 
-  get: async (req, res, next) => {
-    const { limit, season, id } = req.query
-    try {
-      const results = await trailsModel.find(req.query)
-      res.json({
-        success: true,
-        message: [limit, season, id],
-        data: results
-      })
-    } catch (err) {
-      next(err)
-    }
-  },
-
   add: async (req, res, next) => {
     const content = req.body
     try {
