@@ -9,7 +9,6 @@ articleRouter.get('/:id', paramValidator, articleController.getArticle)
 articleRouter.patch('/:id', paramValidator, articleController.updateArticle)
 articleRouter.delete('/:id', paramValidator, articleController.deleteArticle)
 articleRouter.get('/:id/comments', paramValidator, articleController.getComments)
-articleRouter.get('/:id/tags', paramValidator, articleController.getTags)
 
 articleRouter.all('*', (req, res) => res.status(400).json(PATH_ERROR))
 

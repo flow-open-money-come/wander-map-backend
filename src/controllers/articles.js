@@ -119,19 +119,6 @@ const articleController = {
     })
   },
 
-  getTags: (req, res, next) => {
-    const { id } = req.params
-    articleModel.findTagsById(id, (err, results) => {
-      if (err) return next(err)
-      let tags = []
-      tags.push(results.map((value) => value.tag_name))
-      res.json({
-        success: true,
-        message: `get article ${id} tags`,
-        data: tags
-      })
-    })
-  }
 }
 
 module.exports = articleController

@@ -129,16 +129,6 @@ const articleModel = {
     sendQuery(sql, values, cb)
   },
 
-  findTagsById: (id, cb) => {
-    const sql = `SELECT T.* 
-                  FROM article_tag_map AS A
-                  LEFT JOIN tags AS T
-                  USING(tag_id)
-                  WHERE A.article_id = ?
-                  GROUP BY T.tag_id`
-    sendQuery(sql, id, cb)
-  },
-
   findByUserId: (userId, options, cb) => {
     if (options instanceof Function) {
       cb = options
