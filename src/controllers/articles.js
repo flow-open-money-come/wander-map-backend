@@ -16,18 +16,36 @@ const articleController = {
       res.json({
         success: true,
         message: 'OK',
-        data: results,
+        data: results
       })
     })
   },
 
   getArticles: (req, res, next) => {
-    articleModel.findAll((err, results) => {
+    const { location, altitude, length, limit, offset, cursor, search } = req.query
+
+    const options = {
+      location,
+      altitude,
+      length,
+      limit,
+      offset,
+      cursor,
+      search
+    }
+
+    Object.keys(options).forEach((value, index) => {
+      if (!options[value]) {
+        delete options[value]
+      }
+    })
+    
+    articleModel.findAll(options, (err, results) => {
       if (err) return next(err)
       res.json({
         success: true,
         message: 'OK',
-        data: results,
+        data: results
       })
     })
   },
@@ -38,7 +56,7 @@ const articleController = {
       res.json({
         success: true,
         message: 'OK',
-        data: results,
+        data: results
       })
     })
   },
@@ -49,8 +67,8 @@ const articleController = {
       if (err) return next(err)
       res.json({
         success: true,
-        message: 'OK',
-        data: results,
+        message: `get article-id ${id}`,
+        data: results
       })
     })
   },
@@ -66,7 +84,7 @@ const articleController = {
         res.json({
           success: true,
           message: 'OK',
-          data: results,
+          data: results
         })
       })
     })
@@ -79,7 +97,7 @@ const articleController = {
       res.json({
         success: true,
         message: 'OK',
-        data: results,
+        data: results
       })
     })
   },
@@ -95,11 +113,25 @@ const articleController = {
         res.json({
           success: true,
           message: 'OK',
-          data: results,
+          data: results
         })
       })
     })
   },
+
+  getTags: (req, res, next) => {
+    const { id } = req.params
+    articleModel.findTagsById(id, (err, results) => {
+      if (err) return next(err)
+      let tags = []
+      tags.push(results.map((value) => value.tag_name))
+      res.json({
+        success: true,
+        message: `get article ${id} tags`,
+        data: tags
+      })
+    })
+  }
 }
 
 module.exports = articleController
