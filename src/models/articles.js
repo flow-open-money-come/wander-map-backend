@@ -106,7 +106,7 @@ const articleModel = {
     sendQuery(sql, values, cb)
   },
 
-  findCommentsById: (id, author, cb) => {
+  findMessagesById: (id, author, cb) => {
     const sql = `SELECT * FROM messages WHERE article_id = ? AND is_deleted = 0`
     const values = [id, author]
     sendQuery(sql, values, cb)
