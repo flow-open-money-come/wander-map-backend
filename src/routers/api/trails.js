@@ -1,14 +1,19 @@
 const trailRouter = require('express').Router()
+const { PATH_ERROR } = require('../../constants/errors')
 const trailsController = require('../../controllers/trails')
-const { postTrailsValidator } = require('../../middlewares/validators')
+const {
+  paramValidator,
+  postTrailsValidator,
+  paginationAndSearchValidator
+} = require('../../middlewares/validators')
 
-trailRouter.get('/', trailsController.getAll)
-trailRouter.get('/:id', trailsController.getOne)
+trailRouter.get('/', paginationAndSearchValidator, trailsController.getAll)
+trailRouter.get('/hot/:Amount', trailsController.getHotTrails)
+trailRouter.get('/:id', paramValidator, trailsController.getOne)
 trailRouter.post('/', postTrailsValidator, trailsController.add)
-trailRouter.patch('/:id', postTrailsValidator, trailsController.update)
-trailRouter.delete('/:id', trailsController.delete)
+trailRouter.patch('/:id', paramValidator, postTrailsValidator, trailsController.update)
+trailRouter.delete('/:id', paramValidator, trailsController.delete)
+trailRouter.get('/:id/comments', paramValidator, trailsController.getComments)
+trailRouter.all('*', (req, res) => res.status(400).json(PATH_ERROR))
 
-trailRouter.all('*', (req, res) => {
-  res.json('here is api trail all')
-})
 module.exports = trailRouter
