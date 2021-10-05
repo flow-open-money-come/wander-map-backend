@@ -1,10 +1,10 @@
 const userRouter = require('express').Router()
 
-const { PATH_ERROR } = require('../../constants/errors')
-const userController = require('../../controllers/userController')
-const todoController = require('../../controllers/todoController')
 const auth = require('../../middlewares/auth')
-const handleParams = require('../../middlewares/handleParams')
+const { paramValidator, paginationAndSearchValidator, registerValidator, loginValidator, editUserValidator, editTodoValidator, postTodoValidator, likedArticleValidator, collectedTrailsValidator } = require('../../middlewares/validators')
+const { PATH_ERROR } = require('../../constants/errors')
+const userController = require('../../controllers/users')
+const todoController = require('../../controllers/todos')
 
 /**
  * @swagger
@@ -34,7 +34,7 @@ const handleParams = require('../../middlewares/handleParams')
  *       "500":
  *         description: System error
  */
-userRouter.post('/register', userController.register)
+userRouter.post('/register', registerValidator, userController.register)
 
 /**
  * @swagger
@@ -70,7 +70,7 @@ userRouter.post('/register', userController.register)
  *      "500":
  *        description: System error
  */
-userRouter.post('/login', userController.login)
+userRouter.post('/login', loginValidator, userController.login)
 
 /**
  *  @swagger
@@ -121,19 +121,25 @@ userRouter.get('/testAuth', auth, (req, res) => res.json('auth success!!'))
  *            schema:
  *              $ref: '#/components/schemas/getAllUsers'
  */
-userRouter.get('/', userController.getUsers)
+userRouter.get('/', auth, paginationAndSearchValidator, userController.getUsers)
 
-userRouter.get('/:user_id', handleParams, userController.getUser)
-userRouter.patch('/:user_id', auth, handleParams, userController.editUser)
-userRouter.get('/:user_id/todos', handleParams, todoController.getTodos)
-userRouter.post('/:user_id/todos', auth, handleParams, todoController.postTodo)
-userRouter.patch('/:user_id/todos/:todo_id', auth, handleParams, todoController.updateTodo)
-userRouter.delete('/:user_id/todos/:todo_id', auth, handleParams, todoController.deleteTodo)
+userRouter.get('/:userId', auth, paramValidator, userController.getUser)
+userRouter.patch('/:userId', auth, paramValidator, editUserValidator, userController.editUser)
 
-// userRouter.get('/:user_id/articles', (req, res, next) => res.json('articles'))
-// userRouter.patch('/:user_id/articles/:article_id', (req, res, next) => res.json('like/unlike'))
-// userRouter.get('/:user_id/trails', (req, res, next) => res.json('trails'))
-// userRouter.patch('/:user_id/trails/:trail_id', (req, res, next) => res.json('collect'))
+userRouter.get('/:userId/todos', auth, paramValidator, todoController.getTodos)
+userRouter.post('/:userId/todos', auth, paramValidator, postTodoValidator, todoController.postTodo)
+userRouter.patch('/:userId/todos/:todoId', auth, paramValidator, editTodoValidator, todoController.updateTodo)
+userRouter.delete('/:userId/todos/:todoId', auth, paramValidator, todoController.deleteTodo)
 
-userRouter.all('*', (req, res) => res.json(PATH_ERROR))
+userRouter.get('/:userId/articles', paramValidator, paginationAndSearchValidator, userController.getArticles)
+userRouter.get('/:userId/liked-articles', paramValidator, paginationAndSearchValidator, userController.getLikedArticles)
+userRouter.post('/:userId/liked-articles', auth, paramValidator, likedArticleValidator, userController.likeArticle)
+userRouter.delete('/:userId/liked-articles/:articleId', auth, paramValidator, userController.unlikeArticle)
+
+userRouter.get('/:userId/trails', paramValidator, paginationAndSearchValidator, userController.getTrails)
+userRouter.get('/:userId/collected-trails', paramValidator, paginationAndSearchValidator, userController.getCollectedTrails)
+userRouter.post('/:userId/collected-trails', auth, paramValidator, collectedTrailsValidator, userController.collectTrail)
+userRouter.delete('/:userId/collected-trails/:trailId', auth, paramValidator, userController.cancelCollectTrail)
+
+userRouter.all('*', (req, res) => res.status(400).json(PATH_ERROR))
 module.exports = userRouter

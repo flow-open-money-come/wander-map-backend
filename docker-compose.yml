@@ -1,0 +1,26 @@
+version: '3.9'
+
+services:
+  api_server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - ${APP_SERVER_PORT}:${APP_SERVER_PORT}
+    env_file: .env
+    # volumes:
+    #   - ./:/app
+#   mysql_app:
+#     image: mysql
+#     volumes:
+#       - mysql_data:/var/lib/mysql
+#     env_file: .env
+#     environment:
+#       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+#       MYSQL_USER: ${DB_USER}
+#       MYSQL_PASSWORD: ${DB_PASSWORD}
+#       MYSQL_DATABASE: ${DB_DATABASE_NAME}
+
+# volumes:
+#   # 交給 docker 自動創
+#   mysql_data:
