@@ -14,11 +14,18 @@ const trailsController = {
       cursor,
       search
     }
+
+    Object.keys(options).forEach((value, index) => {
+      if (!options[value]) {
+        delete options[value]
+      }
+    })
+
     try {
       const results = await trailsModel.findAll(options)
       res.json({
         success: true,
-        message: `get all trails`,
+        message: `get ${JSON.stringify(options)} trails`,
         data: results
       })
     } catch (err) {
@@ -41,11 +48,12 @@ const trailsController = {
   },
 
   getHotTrails: async (req, res, next) => {
+    const { Amount } = req.params
     try {
-      const results = await trailsModel.findByCollects()
+      const results = await trailsModel.findByCollects(Number(Amount))
       res.json({
         success: true,
-        message: `get top5 hot trails`,
+        message: `get top-${Amount} hot trails`,
         data: results
       })
     } catch (err) {
