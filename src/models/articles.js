@@ -13,6 +13,11 @@ function getArticlePaginationSuffix(options) {
   let sql = ''
   const values = []
 
+  if (options.search) {
+    sql += ' AND title LIKE ?'
+    values.push(`%${options.search}%`)
+  }
+
   if (options.limit) {
     if (options.cursor) {
       sql += ` AND article_id >= ?
@@ -48,16 +53,25 @@ const articleModel = {
 
     const coordinatePattern = /[ ]?coordinate[, ]?/
     if ((coordinate?.x || coordinate?.x) === 0 && (coordinate?.y || coordinate?.y === 0)) {
-      sql = sql.replace(coordinatePattern, '').replace(')', ', coordinate)').replace('?)', '?, ST_PointFromText("POINT(? ?)"))')
+      sql = sql
+        .replace(coordinatePattern, '')
+        .replace(')', ', coordinate)')
+        .replace('?)', '?, ST_PointFromText("POINT(? ?)"))')
       values = values.concat([Number(coordinate.x), Number(coordinate.y)])
     }
     sql += ';'
     sendQuery(sql, values, cb)
   },
 
-  findAll: (cb) => {
-    const sql = 'SELECT * FROM articles WHERE is_deleted = 0'
-    sendQuery(sql, cb)
+  findAll: (options, cb) => {
+    let sql = 'SELECT * FROM articles WHERE is_deleted = 0'
+
+    let values = []
+    const suffix = getArticlePaginationSuffix(options)
+    sql += suffix.sql + ';'
+    values = values.concat(suffix.values)
+
+    sendQuery(sql, values, cb)
   },
 
   findByLikes: (cb) => {
@@ -88,7 +102,10 @@ const articleModel = {
         .join(' = ?, ') + ` = ? `
     values = Object.values(article).filter((data) => data !== article.coordinate)
 
-    if ((article.coordinate?.x || article.coordinate?.x === 0) && (article.coordinate?.y || article.coordinate?.y === 0)) {
+    if (
+      (article.coordinate?.x || article.coordinate?.x === 0) &&
+      (article.coordinate?.y || article.coordinate?.y === 0)
+    ) {
       sql += `, coordinate = ST_PointFromText("POINT(? ?)") WHERE article_id = ?`
       values = values.concat([Number(article.coordinate.x), Number(article.coordinate.y)])
       values.push(id)
@@ -193,7 +210,7 @@ const articleModel = {
                 WHERE user_id = ? AND article_id = ?;`
     const values = [userId, articleId]
     sendQuery(sql, values, cb)
-  },
+  }
 }
 
 module.exports = articleModel
