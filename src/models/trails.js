@@ -13,7 +13,7 @@ function getPaginationAndFilterSuffix(options) {
 
   let sql = ''
   let values = []
-  const { cursor, offset, difficult, altitude, length, location, limit } = options
+  const { cursor, offset, difficult, altitude, length, location, limit, search } = options
   if (cursor) {
     sql += ' AND trail_id >= ?'
     values.push(cursor)
@@ -34,6 +34,11 @@ function getPaginationAndFilterSuffix(options) {
   appendFilterSuffix('AND', '>', length?.gt, 'length')
   appendFilterSuffix('AND', '<', length?.lt, 'length')
 
+  if (search) {
+    sql += ' AND title LIKE ?'
+    values.push(`%${search}%`)
+  }
+
   if (limit) {
     sql += ' LIMIT ?'
     values.push(limit)
@@ -43,19 +48,25 @@ function getPaginationAndFilterSuffix(options) {
 }
 
 const trailModel = {
-  findAll: async () => {
-    const sql = `SELECT * FROM trails WHERE is_deleted = 0`
+  findAll: async (options) => {
+    let sql = `SELECT * FROM trails WHERE is_deleted = 0`
+    let values = []
+
+    const suffix = getPaginationAndFilterSuffix(options)
+    sql += suffix.sql + ';'
+    values = values.concat(suffix.values)
+    logger.debug(sql)
     try {
-      const [rows, fields] = await pool.query(sql)
+      const [rows, fields] = await pool.query(sql, values)
       return rows
     } catch (err) {
       throw err
     }
   },
 
-  findOne: async (id) => {
-    const sql = `SELECT * FROM trails WHERE trail_id = ? AND is_deleted = 0`
-
+  findById: async (id) => {
+    const sql = 'SELECT * FROM trails WHERE trail_id = ? AND is_deleted = 0'
+    logger.debug(sql)
     try {
       const [rows, fields] = await pool.query(sql, id)
       return rows
@@ -66,6 +77,7 @@ const trailModel = {
 
   add: async (trailInfo) => {
     const sql = `INSERT INTO trails(author_id, title, description, location, altitude, length, situation, season, difficulty, coordinate, cover_picture_url, map_picture_url, required_time) VALUE (?, ?, ?, ?, ?, ?, ?, ?, ?, ST_PointFromText("POINT(? ?)"), ?, ?, ?)`
+    logger.debug(sql)
     try {
       const [rows, fields] = await pool.query(sql, [
         trailInfo.author_id,
@@ -93,6 +105,7 @@ const trailModel = {
     const sql = `UPDATE trails SET author_id = ?, title = ?, description = ?, 
       location = ?, altitude = ?,  length = ?, situation = ? , season = ? , difficulty = ?, coordinate = ST_PointFromText("POINT(? ?)"), cover_picture_url = ?, map_picture_url  = ? , required_time = ? , is_deleted = ?
       WHERE trail_id = ?`
+    logger.debug(sql)
     try {
       const [rows, fields] = await pool.query(sql, [
         trailInfo.author_id,
@@ -120,8 +133,39 @@ const trailModel = {
 
   delete: async (id) => {
     const sql = `UPDATE trails SET is_deleted = ? WHERE trail_id = ?`
+    logger.debug(sql)
     try {
       const [rows, fields] = await pool.query(sql, [1, id])
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
+  findByCollects: async (topAmount) => {
+    const sql = `SELECT T.*
+                FROM (
+                  SELECT trail_id, COUNT(trail_id) AS count
+                    FROM final_project_dev.collects
+                    GROUP BY trail_id
+                    ORDER BY count DESC LIMIT ?
+                    ) AS L
+                LEFT JOIN trails AS T
+                USING(trail_id);`
+    logger.debug(sql)
+    try {
+      const [rows, fields] = await pool.query(sql, topAmount)
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
+  findCommentsByTrailId: async (id) => {
+    const sql = `SELECT * FROM comments WHERE trail_id = ?`
+    logger.debug(sql)
+    try {
+      const [rows, fields] = await pool.query(sql, id)
       return rows
     } catch (err) {
       throw err

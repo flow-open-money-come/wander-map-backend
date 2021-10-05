@@ -2,11 +2,30 @@ const trailsModel = require('../models/trails')
 
 const trailsController = {
   getAll: async (req, res, next) => {
+    const { location, altitude, length, difficult, limit, offset, cursor, search } = req.query
+
+    const options = {
+      location,
+      altitude,
+      length,
+      difficult,
+      limit,
+      offset,
+      cursor,
+      search
+    }
+
+    Object.keys(options).forEach((value, index) => {
+      if (!options[value]) {
+        delete options[value]
+      }
+    })
+
     try {
-      const results = await trailsModel.findAll()
+      const results = await trailsModel.findAll(options)
       res.json({
         success: true,
-        message: `get all trails`,
+        message: `get ${JSON.stringify(options)} trails`,
         data: results
       })
     } catch (err) {
@@ -17,10 +36,24 @@ const trailsController = {
   getOne: async (req, res, next) => {
     const { id } = req.params
     try {
-      const results = await trailsModel.findOne(id)
+      const results = await trailsModel.findById(id)
       res.json({
         success: true,
         message: `get trail-${id} info`,
+        data: results
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  getHotTrails: async (req, res, next) => {
+    const { Amount } = req.params
+    try {
+      const results = await trailsModel.findByCollects(Number(Amount))
+      res.json({
+        success: true,
+        message: `get top-${Amount} hot trails`,
         data: results
       })
     } catch (err) {
@@ -64,6 +97,20 @@ const trailsController = {
       res.json({
         success: true,
         message: `trail-${id} deleted`,
+        data: results
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  getComments: async (req, res, next) => {
+    const { id } = req.params
+    try {
+      const results = await trailsModel.findCommentsByTrailId(id)
+      res.json({
+        success: true,
+        message: `get trail-${id} comments`,
         data: results
       })
     } catch (err) {
