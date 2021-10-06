@@ -260,6 +260,12 @@ const articleModel = {
     const values = [userId, articleId]
     sendQuery(sql, values, cb)
   },
+
+  getAuthorId: (articleId, cb) => {
+    const sql = `SELECT author_id FROM articles WHERE article_id = ?`
+    const values = [articleId]
+    sendQuery(sql, values, cb)
+  },
 }
 
 module.exports = articleModel
