@@ -13,6 +13,8 @@ function getArticlePaginationSuffix(options) {
   let sql = ''
   const values = []
 
+  if (!options) return false
+
   if (options.limit) {
     if (options.cursor) {
       sql += ` AND article_id >= ?
@@ -31,6 +33,43 @@ function getArticlePaginationSuffix(options) {
   }
 
   return { sql, values }
+}
+
+function getTagSearchingSuffix(tags = []) {
+  if (tags.length === 0) return false
+  const sql = ` HAVING GROUP_CONCAT(T.tag_name SEPARATOR ', ') REGEXP ?`
+  const value = tags.join('|')
+
+  return { sql, value }
+}
+
+function combineTagAndPaginationSuffix(originQuery = { sql: '', values: [] }, tagSuffix = false, paginationSuffix = false) {
+  if (tagSuffix) {
+    originQuery.sql += tagSuffix.sql
+    originQuery.values.push(tagSuffix.value)
+  }
+
+  if (paginationSuffix && /GROUP BY A.article_id/.test(paginationSuffix.sql)) {
+    originQuery.sql = originQuery.sql.replace('GROUP BY A.article_id', '')
+    if (tagSuffix) {
+      originQuery.sql = originQuery.sql.replace(`HAVING GROUP_CONCAT(T.tag_name SEPARATOR ', ') REGEXP ?`, '')
+      const tagValue = originQuery.values.pop()
+
+      paginationSuffix.sql = paginationSuffix.sql.replace('GROUP BY A.article_id', `GROUP BY A.article_id HAVING GROUP_CONCAT(T.tag_name SEPARATOR ', ') REGEXP ?`)
+      const limitValue = paginationSuffix.values.pop()
+
+      originQuery.sql += paginationSuffix.sql
+      originQuery.values = originQuery.values.concat([...paginationSuffix.values, tagValue, limitValue])
+    } else {
+      originQuery.sql += paginationSuffix.sql
+      originQuery.values = originQuery.values.concat(paginationSuffix.values)
+    }
+  } else if (paginationSuffix) {
+    originQuery.sql += paginationSuffix.sql
+    originQuery.values = originQuery.values.concat(paginationSuffix.values)
+  }
+
+  return originQuery
 }
 
 const articleModel = {
@@ -54,14 +93,30 @@ const articleModel = {
     sql += ';'
     sendQuery(sql, values, cb)
   },
+  // todo： 分頁、tag 篩選功能
+  findAll: (options, cb) => {
+    let sql = `SELECT A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
+                FROM final_project_dev.articles AS A
+                LEFT JOIN final_project_dev.article_tag_map AS M
+                USING(article_id)
+                LEFT JOIN final_project_dev.tags AS T
+                USING(tag_id)
+                WHERE A.is_deleted = 0
+                GROUP BY A.article_id`
+    let values = []
 
-  findAll: (cb) => {
-    const sql = 'SELECT * FROM articles WHERE is_deleted = 0'
-    sendQuery(sql, cb)
+    const tagSuffix = getTagSearchingSuffix(options.tag)
+    const paginationSuffix = getArticlePaginationSuffix(options)
+    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
+
+    sql = query.sql + ';'
+    values = query.values
+    sendQuery(sql, values, cb)
   },
 
-  findByLikes: (cb) => {
-    const sql = `SELECT A.*
+  // todo： 分頁、tag 篩選功能
+  findByLikes: (options, cb) => {
+    let sql = `SELECT A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
                 FROM (
                   SELECT article_id, COUNT(article_id) AS count
                     FROM final_project_dev.likes
@@ -69,12 +124,34 @@ const articleModel = {
                     ORDER BY count DESC LIMIT 5
                     ) AS L
                 LEFT JOIN final_project_dev.articles AS A
-                USING(article_id);`
-    sendQuery(sql, cb)
+                USING(article_id)
+                LEFT JOIN final_project_dev.article_tag_map AS M
+                USING(article_id)
+                LEFT JOIN final_project_dev.tags AS T
+                USING(tag_id)
+                WHERE A.is_deleted = 0
+                GROUP BY A.article_id`
+    let values = []
+
+    const tagSuffix = getTagSearchingSuffix(options.tag)
+    const paginationSuffix = getArticlePaginationSuffix(options)
+    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
+
+    sql = query.sql + ';'
+    values = query.values
+    sendQuery(sql, values, cb)
   },
 
   findById: (id, cb) => {
-    const sql = 'SELECT * FROM articles WHERE is_deleted = 0 AND article_id = ?'
+    const sql = `SELECT A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
+                FROM articles AS A
+                LEFT JOIN article_tag_map AS M
+                USING(article_id)
+                LEFT JOIN tags AS T
+                USING(tag_id)
+                WHERE A.article_id = ?
+                AND A.is_deleted = 0
+                GROUP BY A.article_id`
     const values = [id]
     sendQuery(sql, values, cb)
   },
@@ -118,28 +195,23 @@ const articleModel = {
       options = undefined
     }
 
-    let sql = `SELECT * FROM articles WHERE author_id = ?`
+    let sql = `SELECT A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
+              FROM articles AS A
+              LEFT JOIN article_tag_map AS M
+              USING(article_id)
+              LEFT JOIN tags AS T
+              USING(tag_id)
+              WHERE author_id = ?
+              AND A.is_deleted = 0
+              GROUP BY A.article_id`
     let values = [userId]
 
-    if (options.tag) {
-      const tagNameClause = Array(options.tag.length).fill('?').join(' OR T.tag_name = ')
-      sql = `SELECT A.*
-            FROM articles AS A
-            LEFT JOIN article_tag_map AS M
-            USING(article_id)
-            LEFT JOIN tags AS T
-            USING(tag_id)
-            WHERE A.author_id = ?
-            AND (T.tag_name = ${tagNameClause})
-            GROUP BY A.article_id`
-      options.tag.forEach((value) => values.push(value))
-    }
+    const tagSuffix = getTagSearchingSuffix(options.tag)
+    const paginationSuffix = getArticlePaginationSuffix(options)
+    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
 
-    const suffix = getArticlePaginationSuffix(options)
-    if (/GROUP BY A.article_id/.test(suffix.sql)) sql = sql.replace('GROUP BY A.article_id', '')
-    sql += suffix.sql + ';'
-    values = values.concat(suffix.values)
-
+    sql = query.sql + ';'
+    values = query.values
     sendQuery(sql, values, cb)
   },
 
@@ -149,31 +221,25 @@ const articleModel = {
       options = undefined
     }
 
-    let sql = `SELECT A.*
+    let sql = `SELECT A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
               FROM likes AS L
               LEFT JOIN articles AS A
               USING(article_id)
-              WHERE L.user_id = ?
-              GROUP BY A.article_id`
-    let values = [userId]
-
-    if (options.tag) {
-      const tagNameClause = Array(options.tag.length).fill('?').join(' OR T.tag_name = ')
-      sql = sql.replace('WHERE L.user_id = ?', '').replace('GROUP BY A.article_id', '')
-      sql += `LEFT JOIN article_tag_map AS M
+              LEFT JOIN article_tag_map AS M
               USING(article_id)
               LEFT JOIN tags AS T
               USING(tag_id)
               WHERE L.user_id = ?
-              AND (T.tag_name = ${tagNameClause})
+              AND A.is_deleted = 0
               GROUP BY A.article_id`
-      options.tag.forEach((value) => values.push(value))
-    }
+    let values = [userId]
 
-    const suffix = getArticlePaginationSuffix(options)
-    if (/GROUP BY A.article_id/.test(suffix.sql)) sql = sql.replace('GROUP BY A.article_id', '')
-    sql += suffix.sql + ';'
-    values = values.concat(suffix.values)
+    const tagSuffix = getTagSearchingSuffix(options.tag)
+    const paginationSuffix = getArticlePaginationSuffix(options)
+    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
+
+    sql = query.sql + ';'
+    values = query.values
 
     sendQuery(sql, values, cb)
   },
@@ -183,7 +249,7 @@ const articleModel = {
                 SELECT * FROM (SELECT ?, ?) as tmp
                 WHERE NOT EXISTS (
                   SELECT user_id FROM likes
-                  WHERE user_id = ? AND article_id = ?);`
+                  WHERE user_id = ? AND article_id = ? AND is_deleted = 0);`
     const values = [userId, articleId, userId, articleId]
     sendQuery(sql, values, cb)
   },
@@ -192,12 +258,6 @@ const articleModel = {
     const sql = `DELETE FROM likes
                 WHERE user_id = ? AND article_id = ?;`
     const values = [userId, articleId]
-    sendQuery(sql, values, cb)
-  },
-
-  getAuthorId: (articleId, cb) => {
-    const sql = `SELECT author_id FROM articles WHERE article_id = ?`
-    const values = [articleId]
     sendQuery(sql, values, cb)
   },
 }

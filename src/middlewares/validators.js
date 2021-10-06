@@ -145,28 +145,7 @@ const validators = {
     handleValidationResult,
   ],
 
-  articleValidator: [
-    body('title').trim(),
-    body('content').trim(),
-    body('location').optional().trim(),
-    body('coordinate')
-      .optional()
-      .isObject()
-      .customSanitizer((coordinate) => {
-        return { x: coordinate.x, y: coordinate.y }
-      }),
-    body('coordinate.x').optional().toFloat().isFloat({ min: 0 }),
-    body('coordinate.y').optional().toFloat().isFloat({ min: 0 }),
-    body('altitude').optional().toInt().isInt(),
-    body('length').optional().toInt().isInt({ min: 0 }),
-    body('departure_time', 'format: yyyy-mm-dd hh:mm:ss').optional().isISO8601(),
-    body('end_time').optional().isISO8601(),
-    body('time_spent').optional().toInt().isInt({ min: 0 }),
-    body('cover_picture_url').optional().isURL(),
-    body('gpx_url').optional().isURL(),
-    body('is_deleted').optional().toInt({ min: 0, max: 1 }),
-    handleValidationResult,
-  ],
+  postArticleValidator: [],
 }
 
 module.exports = validators
