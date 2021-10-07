@@ -105,17 +105,12 @@ const articleController = {
 
   getMessages: (req, res, next) => {
     const { id } = req.params
-    articleModel.findById(id, (err, results) => {
+    articleModel.findMessagesById(id, (err, results) => {
       if (err) return next(err)
-      if (!results[0]) return res.status(403).json(INVALID_INPUT)
-      const author = results[0].author_id
-      articleModel.findMessagesById(id, author, (err, results) => {
-        if (err) return next(err)
-        res.json({
-          success: true,
-          message: 'OK',
-          data: results,
-        })
+      res.json({
+        success: true,
+        message: 'OK',
+        data: results,
       })
     })
   },

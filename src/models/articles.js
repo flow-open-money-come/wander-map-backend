@@ -133,9 +133,12 @@ const articleModel = {
     sendQuery(sql, values, cb)
   },
 
-  findMessagesById: (id, author, cb) => {
-    const sql = `SELECT * FROM messages WHERE article_id = ? AND is_deleted = 0`
-    const values = [id, author]
+  findMessagesById: (id, cb) => {
+    const sql = `SELECT * FROM messages as M 
+                LEFT JOIN (SELECT user_id, nickname, icon_url FROM users) AS U 
+                on M.author_id = U.user_id
+                WHERE article_id = ?`
+    const values = [id]
     sendQuery(sql, values, cb)
   },
 
@@ -243,7 +246,7 @@ const articleModel = {
   },
 
   updateMessage: (messageId, message, cb) => {
-    const sql = `UPDATE messages SET content = ? WHERE message_id = ? AND is_deleted = 0`
+    const sql = `UPDATE messages SET content = ? WHERE message_id = ?`
     const values = [message.content, messageId]
     sendQuery(sql, values, cb)
   },
