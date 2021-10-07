@@ -9,6 +9,12 @@ function sendQuery(sql, values, cb) {
   })
 }
 
+function getTagId(tags, cb) {
+  if (!tags || tags.length === 0) return cb(null, [])
+  const sql = `SELECT tag_id FROM tags WHERE tag_name IN(${Array(tags.length).fill('?').join(', ')});`
+  sendQuery(sql, tags, cb)
+}
+
 function getArticlePaginationSuffix(options) {
   let sql = ''
   const values = []
@@ -76,24 +82,24 @@ const articleModel = {
   add: (article, cb) => {
     // author_id, title, content, location, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url
     let coordinate
+
     if (article.coordinate) {
       coordinate = article.coordinate
       delete article.coordinate
     }
+
     const articlePropertyNames = Object.keys(article)
     let sql = `INSERT INTO articles(${articlePropertyNames.join(', ')})
                 VALUES (${Array(articlePropertyNames.length).fill('?').join(', ')})`
     let values = Object.values(article)
-
-    const coordinatePattern = /[ ]?coordinate[, ]?/
-    if ((coordinate?.x || coordinate?.x) === 0 && (coordinate?.y || coordinate?.y === 0)) {
-      sql = sql.replace(coordinatePattern, '').replace(')', ', coordinate)').replace('?)', '?, ST_PointFromText("POINT(? ?)"))')
+    if ((coordinate?.x || coordinate?.x === 0) && (coordinate?.y || coordinate?.y === 0)) {
+      sql = sql.replace(')', ', coordinate)').replace('?)', '?, ST_PointFromText("POINT(? ?)"))')
       values = values.concat([Number(coordinate.x), Number(coordinate.y)])
     }
     sql += ';'
     sendQuery(sql, values, cb)
   },
-  // todo： 分頁、tag 篩選功能
+
   findAll: (options, cb) => {
     let sql = `SELECT A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
                 FROM final_project_dev.articles AS A
@@ -114,7 +120,6 @@ const articleModel = {
     sendQuery(sql, values, cb)
   },
 
-  // todo： 分頁、tag 篩選功能
   findByLikes: (options, cb) => {
     let sql = `SELECT A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
                 FROM (
@@ -142,7 +147,7 @@ const articleModel = {
     sendQuery(sql, values, cb)
   },
 
-  findById: (id, cb) => {
+  findById: (articleId, cb) => {
     const sql = `SELECT A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
                 FROM articles AS A
                 LEFT JOIN article_tag_map AS M
@@ -152,40 +157,42 @@ const articleModel = {
                 WHERE A.article_id = ?
                 AND A.is_deleted = 0
                 GROUP BY A.article_id`
-    const values = [id]
+    const values = [articleId]
     sendQuery(sql, values, cb)
   },
 
-  update: (id, article, cb) => {
+  update: (articleId, article, cb) => {
+    if (Object.keys(article).length === 0) return cb(null, [])
+
     let values = []
     let sql = `UPDATE articles SET `
-    sql +=
-      Object.keys(article)
-        .filter((data) => data !== 'coordinate')
-        .join(' = ?, ') + ` = ? `
+    const columnNames = Object.keys(article).filter((data) => data !== 'coordinate')
+
+    sql += columnNames.join(' = ?, ') + ` = ? `
     values = Object.values(article).filter((data) => data !== article.coordinate)
 
     if ((article.coordinate?.x || article.coordinate?.x === 0) && (article.coordinate?.y || article.coordinate?.y === 0)) {
-      sql += `, coordinate = ST_PointFromText("POINT(? ?)") WHERE article_id = ?`
+      sql += `, coordinate = ST_PointFromText("POINT(? ?)")`
       values = values.concat([Number(article.coordinate.x), Number(article.coordinate.y)])
-      values.push(id)
     } else {
-      sql += `WHERE article_id = ?`
-      values.push(id)
+      if (columnNames.length === 0) return cb(null, 'nothing to update')
     }
 
+    sql += `WHERE article_id = ?;`
+    values.push(articleId)
+
     sendQuery(sql, values, cb)
   },
 
-  delete: (id, cb) => {
+  delete: (articleId, cb) => {
     const sql = `UPDATE articles SET is_deleted = ? WHERE article_id = ?`
-    const values = [1, id]
+    const values = [1, articleId]
     sendQuery(sql, values, cb)
   },
 
-  findMessagesById: (id, author, cb) => {
+  findMessagesById: (articleId, author, cb) => {
     const sql = `SELECT * FROM messages WHERE article_id = ? AND is_deleted = 0`
-    const values = [id, author]
+    const values = [articleId, author]
     sendQuery(sql, values, cb)
   },
 
@@ -265,6 +272,33 @@ const articleModel = {
     const sql = `SELECT author_id FROM articles WHERE article_id = ?`
     const values = [articleId]
     sendQuery(sql, values, cb)
+  },
+
+  createTagAssociation: (articleId, tags, cb) => {
+    getTagId(tags, (err, tagIdArray) => {
+      if (err) return cb(err)
+      if (tagIdArray.length === 0) return cb(null, [])
+
+      const sql = `INSERT IGNORE INTO article_tag_map (article_id, tag_id)
+                    VALUES ${Array(tagIdArray.length).fill('(?, ?)').join(', ')};`
+      const values = tagIdArray.reduce((accu, curr) => accu.concat([articleId, curr.tag_id]), [])
+
+      sendQuery(sql, values, cb)
+    })
+  },
+
+  deleteTagAssociationNotInList: (articleId, tags, cb) => {
+    getTagId(tags, (err, tagIdArray) => {
+      if (err) return cb(err)
+
+      let sql = `DELETE FROM article_tag_map
+                    WHERE article_id = ?`
+      const values = [articleId].concat(tagIdArray.map((obj) => obj.tag_id))
+
+      if (tagIdArray.length > 0) sql += `AND tag_id NOT IN (${Array(tagIdArray.length).fill('?').join(', ')})`
+      sql += ';'
+      sendQuery(sql, values, cb)
+    })
   },
 }
 
