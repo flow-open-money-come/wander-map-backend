@@ -88,7 +88,14 @@ const articleModel = {
   },
 
   findById: (id, cb) => {
-    const sql = 'SELECT * FROM articles WHERE is_deleted = 0 AND article_id = ?'
+    const sql = `SELECT A.*, M.trail_id, T.title AS trail_title
+                  FROM articles AS A 
+                  LEFT JOIN article_trail_map AS M
+                    ON (A.article_id = M.article_id)
+                  LEFT JOIN trails AS T
+                    ON (M.trail_id = T.trail_id)
+                  WHERE A.article_id = ? 
+                  AND A.is_deleted = 0`
     const values = [id]
     sendQuery(sql, values, cb)
   },
@@ -209,6 +216,27 @@ const articleModel = {
     const sql = `DELETE FROM likes
                 WHERE user_id = ? AND article_id = ?;`
     const values = [userId, articleId]
+    sendQuery(sql, values, cb)
+  },
+
+  findByTrailId: (trailId, cb) => {
+    let sql = `SELECT A.*
+               FROM articles AS A
+               LEFT JOIN article_trail_map AS M
+               USING(article_id)
+               WHERE M.trail_id = ?`
+    sendQuery(sql, trailId, cb)
+  },
+
+  createTrailAssociation: (articleId, trailId, cb) => {
+    const sql = `INSERT INTO article_trail_map(article_id, trail_id) VALUE (?, ?) `
+    const values = [articleId, trailId]
+    sendQuery(sql, values, cb)
+  },
+
+  cancelTrailAssociation: (articleId, trailId, cb) => {
+    const sql = `DELETE FROM article_trail_map WHERE article_id = ? AND trail_id = ? `
+    const values = [articleId, trailId]
     sendQuery(sql, values, cb)
   }
 }

@@ -39,7 +39,7 @@ const articleController = {
         delete options[value]
       }
     })
-    
+
     articleModel.findAll(options, (err, results) => {
       if (err) return next(err)
       res.json({
@@ -119,6 +119,33 @@ const articleController = {
     })
   },
 
+  relateTrail: (req, res, next) => {
+    const { id } = req.params
+    const { trailId } = req.body
+
+    articleModel.createTrailAssociation(id, trailId, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: `article-${id} linked to trail-${trailId}`,
+        data: results
+      })
+    })
+  },
+
+  unRelateTrail: (req, res, next) => {
+    const { id } = req.params
+    const { trailId } = req.body
+
+    articleModel.cancelTrailAssociation(id, trailId, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: `article-${id} unlinked to trail-${trailId}`,
+        data: results
+      })
+    })
+  }
 }
 
 module.exports = articleController

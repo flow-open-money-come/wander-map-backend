@@ -14,6 +14,10 @@ trailRouter.post('/', postTrailsValidator, trailsController.add)
 trailRouter.patch('/:id', paramValidator, postTrailsValidator, trailsController.update)
 trailRouter.delete('/:id', paramValidator, trailsController.delete)
 trailRouter.get('/:id/comments', paramValidator, trailsController.getComments)
+
+trailRouter.get('/:trailId/articles', paramValidator, trailsController.getArticles)
+
+
 trailRouter.all('*', (req, res) => res.status(400).json(PATH_ERROR))
 
 module.exports = trailRouter
