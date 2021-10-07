@@ -48,11 +48,16 @@ const articleModel = {
     }
     const articlePropertyNames = Object.keys(article)
     let sql = `INSERT INTO articles(${articlePropertyNames.join(', ')})
-                VALUES (${Array(articlePropertyNames.length).fill('?').join(', ')})`
+                VALUES (${Array(articlePropertyNames.length)
+                  .fill('?')
+                  .join(', ')})`
     let values = Object.values(article)
 
     const coordinatePattern = /[ ]?coordinate[, ]?/
-    if ((coordinate?.x || coordinate?.x) === 0 && (coordinate?.y || coordinate?.y === 0)) {
+    if (
+      (coordinate?.x || coordinate?.x) === 0 &&
+      (coordinate?.y || coordinate?.y === 0)
+    ) {
       sql = sql
         .replace(coordinatePattern, '')
         .replace(')', ', coordinate)')
@@ -100,14 +105,19 @@ const articleModel = {
       Object.keys(article)
         .filter((data) => data !== 'coordinate')
         .join(' = ?, ') + ` = ? `
-    values = Object.values(article).filter((data) => data !== article.coordinate)
+    values = Object.values(article).filter(
+      (data) => data !== article.coordinate
+    )
 
     if (
       (article.coordinate?.x || article.coordinate?.x === 0) &&
       (article.coordinate?.y || article.coordinate?.y === 0)
     ) {
       sql += `, coordinate = ST_PointFromText("POINT(? ?)") WHERE article_id = ?`
-      values = values.concat([Number(article.coordinate.x), Number(article.coordinate.y)])
+      values = values.concat([
+        Number(article.coordinate.x),
+        Number(article.coordinate.y),
+      ])
       values.push(id)
     } else {
       sql += `WHERE article_id = ?`
@@ -123,7 +133,7 @@ const articleModel = {
     sendQuery(sql, values, cb)
   },
 
-  findCommentsById: (id, author, cb) => {
+  findMessagesById: (id, author, cb) => {
     const sql = `SELECT * FROM messages WHERE article_id = ? AND is_deleted = 0`
     const values = [id, author]
     sendQuery(sql, values, cb)
@@ -139,7 +149,9 @@ const articleModel = {
     let values = [userId]
 
     if (options.tag) {
-      const tagNameClause = Array(options.tag.length).fill('?').join(' OR T.tag_name = ')
+      const tagNameClause = Array(options.tag.length)
+        .fill('?')
+        .join(' OR T.tag_name = ')
       sql = `SELECT A.*
             FROM articles AS A
             LEFT JOIN article_tag_map AS M
@@ -153,7 +165,8 @@ const articleModel = {
     }
 
     const suffix = getArticlePaginationSuffix(options)
-    if (/GROUP BY A.article_id/.test(suffix.sql)) sql = sql.replace('GROUP BY A.article_id', '')
+    if (/GROUP BY A.article_id/.test(suffix.sql))
+      sql = sql.replace('GROUP BY A.article_id', '')
     sql += suffix.sql + ';'
     values = values.concat(suffix.values)
 
@@ -175,8 +188,12 @@ const articleModel = {
     let values = [userId]
 
     if (options.tag) {
-      const tagNameClause = Array(options.tag.length).fill('?').join(' OR T.tag_name = ')
-      sql = sql.replace('WHERE L.user_id = ?', '').replace('GROUP BY A.article_id', '')
+      const tagNameClause = Array(options.tag.length)
+        .fill('?')
+        .join(' OR T.tag_name = ')
+      sql = sql
+        .replace('WHERE L.user_id = ?', '')
+        .replace('GROUP BY A.article_id', '')
       sql += `LEFT JOIN article_tag_map AS M
               USING(article_id)
               LEFT JOIN tags AS T
@@ -188,7 +205,8 @@ const articleModel = {
     }
 
     const suffix = getArticlePaginationSuffix(options)
-    if (/GROUP BY A.article_id/.test(suffix.sql)) sql = sql.replace('GROUP BY A.article_id', '')
+    if (/GROUP BY A.article_id/.test(suffix.sql))
+      sql = sql.replace('GROUP BY A.article_id', '')
     sql += suffix.sql + ';'
     values = values.concat(suffix.values)
 
@@ -210,7 +228,25 @@ const articleModel = {
                 WHERE user_id = ? AND article_id = ?;`
     const values = [userId, articleId]
     sendQuery(sql, values, cb)
-  }
+  },
+
+  addMessage: (articleId, message, cb) => {
+    const sql = `INSERT INTO messages(author_id, content, article_id) VALUES (?, ?, ?)`
+    const values = [message.author_id, message.content, articleId]
+    sendQuery(sql, values, cb)
+  },
+
+  deleteMessage: (messageId, cb) => {
+    const sql = `DELETE FROM messages WHERE message_id = ?`
+    const values = [messageId]
+    sendQuery(sql, values, cb)
+  },
+
+  updateMessage: (messageId, message, cb) => {
+    const sql = `UPDATE messages SET content = ? WHERE message_id = ? AND is_deleted = 0`
+    const values = [message.content, messageId]
+    sendQuery(sql, values, cb)
+  },
 }
 
 module.exports = articleModel

@@ -16,13 +16,14 @@ const articleController = {
       res.json({
         success: true,
         message: 'OK',
-        data: results
+        data: results,
       })
     })
   },
 
   getArticles: (req, res, next) => {
-    const { location, altitude, length, limit, offset, cursor, search } = req.query
+    const { location, altitude, length, limit, offset, cursor, search } =
+      req.query
 
     const options = {
       location,
@@ -31,7 +32,7 @@ const articleController = {
       limit,
       offset,
       cursor,
-      search
+      search,
     }
 
     Object.keys(options).forEach((value, index) => {
@@ -39,13 +40,13 @@ const articleController = {
         delete options[value]
       }
     })
-    
+
     articleModel.findAll(options, (err, results) => {
       if (err) return next(err)
       res.json({
         success: true,
         message: 'OK',
-        data: results
+        data: results,
       })
     })
   },
@@ -56,7 +57,7 @@ const articleController = {
       res.json({
         success: true,
         message: 'OK',
-        data: results
+        data: results,
       })
     })
   },
@@ -68,7 +69,7 @@ const articleController = {
       res.json({
         success: true,
         message: `get article-id ${id}`,
-        data: results
+        data: results,
       })
     })
   },
@@ -84,7 +85,7 @@ const articleController = {
         res.json({
           success: true,
           message: 'OK',
-          data: results
+          data: results,
         })
       })
     })
@@ -97,28 +98,65 @@ const articleController = {
       res.json({
         success: true,
         message: 'OK',
-        data: results
+        data: results,
       })
     })
   },
 
-  getComments: (req, res, next) => {
+  getMessages: (req, res, next) => {
     const { id } = req.params
     articleModel.findById(id, (err, results) => {
       if (err) return next(err)
       if (!results[0]) return res.status(403).json(INVALID_INPUT)
       const author = results[0].author_id
-      articleModel.findCommentsById(id, author, (err, results) => {
+      articleModel.findMessagesById(id, author, (err, results) => {
         if (err) return next(err)
         res.json({
           success: true,
           message: 'OK',
-          data: results
+          data: results,
         })
       })
     })
   },
 
+  addMessage: (req, res, next) => {
+    const { id } = req.params
+    const message = req.body
+    articleModel.addMessage(id, message, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: 'OK',
+        data: results,
+      })
+    })
+  },
+
+  deleteMessage: (req, res, next) => {
+    const { messageId } = req.params
+    articleModel.deleteMessage(messageId, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: 'OK',
+        data: results,
+      })
+    })
+  },
+
+  updateMessage: (req, res, next) => {
+    const { messageId } = req.params
+    const message = req.body
+    articleModel.updateMessage(messageId, message, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: 'OK',
+        data: results,
+      })
+    })
+  },
 }
 
 module.exports = articleController
