@@ -107,10 +107,10 @@ const articleModel = {
 
   findAll: (options, cb) => {
     let sql = `SELECT A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
-                FROM final_project_dev.articles AS A
-                LEFT JOIN final_project_dev.article_tag_map AS M
+                FROM articles AS A
+                LEFT JOIN article_tag_map AS M
                 USING(article_id)
-                LEFT JOIN final_project_dev.tags AS T
+                LEFT JOIN tags AS T
                 USING(tag_id)
                 WHERE A.is_deleted = 0
                 GROUP BY A.article_id`
@@ -129,15 +129,15 @@ const articleModel = {
     let sql = `SELECT A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
                 FROM (
                   SELECT article_id, COUNT(article_id) AS count
-                    FROM final_project_dev.likes
+                    FROM likes
                     GROUP BY article_id
                     ORDER BY count DESC LIMIT 5
                     ) AS L
-                LEFT JOIN final_project_dev.articles AS A
+                LEFT JOIN articles AS A
                 USING(article_id)
-                LEFT JOIN final_project_dev.article_tag_map AS M
+                LEFT JOIN article_tag_map AS M
                 USING(article_id)
-                LEFT JOIN final_project_dev.tags AS T
+                LEFT JOIN tags AS T
                 USING(tag_id)
                 WHERE A.is_deleted = 0
                 GROUP BY A.article_id`
