@@ -172,6 +172,39 @@ const trailModel = {
     }
   },
 
+  addCommentByTrailId: async (trailId, comment) => {
+    const sql = `INSERT INTO comments(trail_id, author_id, content) VALUE (?, ?, ?)`
+    logger.debug(sql)
+    try {
+      const [rows, fields] = await pool.query(sql, [trailId, comment.author_id, comment.content])
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
+  updateCommentByCommentId: async (commentId, comment) => {
+    const sql = `UPDATE comments SET author_id = ? , content = ? WHERE comment_id =?`
+    logger.debug(sql)
+    try {
+      const [rows, fields] = await pool.query(sql, [comment.author_id, comment.content, commentId])
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
+  deleteCommentByCommentId: async (commentId) => {
+    const sql = `DELETE FROM comments WHERE comment_id = ?`
+    logger.debug(sql)
+    try {
+      const [rows, fields] = await pool.query(sql, commentId)
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
   findByUserId: async (userId, options) => {
     let sql = `SELECT * FROM trails WHERE author_id = ?`
     let values = [userId]
