@@ -162,7 +162,10 @@ const trailModel = {
   },
 
   findCommentsByTrailId: async (id) => {
-    const sql = `SELECT * FROM comments WHERE trail_id = ?`
+    const sql = `SELECT * FROM comments AS C 
+                 left join (SELECT user_id, icon_url FROM users)AS U 
+                 on C.author_id = U.user_id 
+                 WHERE trail_id = ?`
     logger.debug(sql)
     try {
       const [rows, fields] = await pool.query(sql, id)
