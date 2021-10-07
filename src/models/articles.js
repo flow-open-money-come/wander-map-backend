@@ -21,6 +21,11 @@ function getArticlePaginationSuffix(options) {
 
   if (!options) return false
 
+  if (options.search) {
+    sql += ' AND title LIKE ?'
+    values.push(`%${options.search}%`)
+  }
+
   if (options.limit) {
     if (options.cursor) {
       sql += ` AND article_id >= ?

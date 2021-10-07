@@ -54,13 +54,25 @@ const articleController = {
   },
 
   getArticles: (req, res, next) => {
-    const { limit, offset, cursor, tag } = req.query
+    const { location, altitude, length, limit, offset, cursor, search, tag } = req.query
+
     const options = {
+      location,
+      altitude,
+      length,
       limit: limit || 20,
       offset,
       cursor,
+      search,
       tag,
     }
+
+    Object.keys(options).forEach((value, index) => {
+      if (!options[index]) {
+        delete options[index]
+      }
+    })
+
     articleModel.findAll(options, (err, results) => {
       if (err) return next(err)
       res.json({
@@ -95,7 +107,7 @@ const articleController = {
       if (err) return next(err)
       res.json({
         success: true,
-        message: 'OK',
+        message: `get article-id ${articleId}`,
         data: results,
       })
     })
