@@ -163,7 +163,7 @@ const trailModel = {
 
   findCommentsByTrailId: async (id) => {
     const sql = `SELECT * FROM comments AS C 
-                 left join (SELECT user_id, icon_url FROM users)AS U 
+                 LEFT JOIN (SELECT user_id, nickname, icon_url FROM users)AS U 
                  on C.author_id = U.user_id 
                  WHERE trail_id = ?`
     logger.debug(sql)
@@ -187,10 +187,10 @@ const trailModel = {
   },
 
   updateCommentByCommentId: async (commentId, comment) => {
-    const sql = `UPDATE comments SET author_id = ? , content = ? WHERE comment_id =?`
+    const sql = `UPDATE comments SET content = ? WHERE comment_id =?`
     logger.debug(sql)
     try {
-      const [rows, fields] = await pool.query(sql, [comment.author_id, comment.content, commentId])
+      const [rows, fields] = await pool.query(sql, [comment.content, commentId])
       return rows
     } catch (err) {
       throw err
