@@ -152,27 +152,26 @@ const articleModel = {
     sendQuery(sql, values, cb)
   },
 
-
-    // const sql = `SELECT A.*, M.trail_id, T.title AS trail_title
-    //               FROM articles AS A 
-    //               LEFT JOIN article_trail_map AS M
-    //                 ON (A.article_id = M.article_id)
-    //               LEFT JOIN trails AS T
-    //                 ON (M.trail_id = T.trail_id)
-    //               WHERE A.article_id = ? 
-    //               AND A.is_deleted = 0`
-    // const values = [id]
   findById: (articleId, cb) => {
-    const sql = `SELECT A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
-                FROM articles AS A
-                LEFT JOIN article_tag_map AS M
-                USING(article_id)
-                LEFT JOIN tags AS T
-                USING(tag_id)
-                WHERE A.article_id = ?
-                AND A.is_deleted = 0
-                GROUP BY A.article_id`
-    const values = [articleId]
+    const sql = `SELECT ARTICLEwithTAGS.*, TR.title AS trail_title
+                  FROM (
+                    SELECT A.*, GROUP_CONCAT(TA.tag_name SEPARATOR ', ') AS tag_names
+                    FROM articles AS A 
+                    LEFT JOIN article_tag_map AS TAM
+                      ON (A.article_id = TAM.article_id)
+                    LEFT JOIN tags AS TA
+                      ON (TAM.tag_id = TA.tag_id)
+                    WHERE A.article_id = ?
+                    AND A.is_deleted = 0
+                    GROUP BY A.article_id
+                  ) AS ARTICLEwithTAGS
+                  LEFT JOIN article_trail_map AS TRM
+                    USING(article_id)
+                  LEFT JOIN trails AS TR
+                    USING(trail_id)
+                  WHERE ARTICLEwithTAGS.article_id = ?
+                  AND ARTICLEwithTAGS.is_deleted = 0`
+    const values = [articleId, articleId]
     sendQuery(sql, values, cb)
   },
 
@@ -303,7 +302,7 @@ const articleModel = {
     const values = [articleId, trailId]
     sendQuery(sql, values, cb)
   },
-  
+
   getAuthorId: (articleId, cb) => {
     const sql = `SELECT author_id FROM articles WHERE article_id = ?`
     const values = [articleId]

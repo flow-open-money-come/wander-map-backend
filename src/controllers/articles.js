@@ -207,28 +207,27 @@ const articleController = {
   },
 
   relateTrail: (req, res, next) => {
-    const { id } = req.params
-    const { trailId } = req.body
+    const { articleId } = req.params
+    const { trail_id } = req.body
 
-    articleModel.createTrailAssociation(id, trailId, (err, results) => {
+    articleModel.createTrailAssociation(articleId, trail_id, (err, results) => {
       if (err) return next(err)
       res.json({
         success: true,
-        message: `article-${id} linked to trail-${trailId}`,
+        message: `article-${articleId} linked to trail-${trail_id}`,
         data: results
       })
     })
   },
 
   unRelateTrail: (req, res, next) => {
-    const { id } = req.params
-    const { trailId } = req.body
+    const { articleId, trailId } = req.params
 
-    articleModel.cancelTrailAssociation(id, trailId, (err, results) => {
+    articleModel.cancelTrailAssociation(articleId, trailId, (err, results) => {
       if (err) return next(err)
       res.json({
         success: true,
-        message: `article-${id} unlinked to trail-${trailId}`,
+        message: `article-${articleId} unlinked to trail-${trailId}`,
         data: results
       })
     })
