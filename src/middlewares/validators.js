@@ -12,10 +12,7 @@ function handleValidationResult(req, res, next) {
 }
 
 const validators = {
-  paramValidator: [
-    param('*', 'id in params must be integer').toInt().isInt(),
-    handleValidationResult
-  ],
+  paramValidator: [param('*', 'id in params must be integer').toInt().isInt(), handleValidationResult],
 
   paginationAndSearchValidator: [
     query('limit')
@@ -41,10 +38,7 @@ const validators = {
           return cities
         }, [])
       }),
-    query(
-      'altitude',
-      'should be in the format of "altitude[gt]=1000" or "altitude[lt]=2000" to filter'
-    )
+    query('altitude', 'should be in the format of "altitude[gt]=1000" or "altitude[lt]=2000" to filter')
       .optional()
       .isObject()
       .customSanitizer((altitude) => {
@@ -88,20 +82,15 @@ const validators = {
       .optional()
       .toArray()
       .customSanitizer((difficult) => {
-        return difficult
-          .map((ele) => parseInt(ele, 10))
-          .filter((ele) => ele && ele >= 1 && ele <= 5)
+        return difficult.map((ele) => parseInt(ele, 10)).filter((ele) => ele && ele >= 1 && ele <= 5)
       }),
-    handleValidationResult
+    handleValidationResult,
   ],
 
   registerValidator: [
     body('nickname', 'nickname must not be empty').trim().notEmpty(),
     body('email', 'email format error').trim().normalizeEmail().isEmail(),
-    body(
-      'password',
-      'Password must be at least 8 characters long and include at least 1 number & 1 alphabetical character'
-    )
+    body('password', 'Password must be at least 8 characters long and include at least 1 number & 1 alphabetical character')
       .trim()
       .custom((value) => {
         const passwordFormat = new RegExp(/(?=.*\d)(?=.*[a-zA-Z])^[a-zA-Z0-9!@#$%^&*]{8,}$/)
@@ -110,19 +99,16 @@ const validators = {
     body('confirmPassword', 'Password and confirm password does not match')
       .trim()
       .custom((value, { req }) => value === req.body.password),
-    handleValidationResult
+    handleValidationResult,
   ],
 
-  loginValidator: [body('email').trim(), body('password').trim(), handleValidationResult],
+  loginValidator: [body('email').trim().notEmpty(), body('password').trim().notEmpty(), handleValidationResult],
 
   editUserValidator: [
     body('nickname').optional().trim().notEmpty(),
     body('iconUrl').optional().trim().notEmpty(),
     body('role').optional().trim().notEmpty(),
-    body(
-      'password',
-      'Password must be at least 8 characters long and include at least 1 number & 1 alphabetical character'
-    )
+    body('password', 'Password must be at least 8 characters long and include at least 1 number & 1 alphabetical character')
       .optional()
       .trim()
       .custom((value) => {
@@ -133,22 +119,13 @@ const validators = {
       .optional()
       .trim()
       .custom((value, { req }) => value === req.body.password),
-    handleValidationResult
+    handleValidationResult,
   ],
 
-  postTodoValidator: [
-    body('content', 'content is required').exists({ checkNull: true }).trim(),
-    handleValidationResult
-  ],
+  postTodoValidator: [body('content', 'content is required').exists({ checkNull: true }).trim(), handleValidationResult],
   editTodoValidator: [body('isDone').optional().trim().toInt(), handleValidationResult],
-  likedArticleValidator: [
-    body('articleId', 'articleId must be integer').trim().toInt().isInt({ min: 1 }),
-    handleValidationResult
-  ],
-  collectedTrailsValidator: [
-    body('trailId', 'trailId must be integer').trim().toInt().isInt({ min: 1 }),
-    handleValidationResult
-  ],
+  likedArticleValidator: [body('articleId', 'articleId must be integer').trim().toInt().isInt({ min: 1 }), handleValidationResult],
+  collectedTrailsValidator: [body('trailId', 'trailId must be integer').trim().toInt().isInt({ min: 1 }), handleValidationResult],
 
   postTrailsValidator: [
     body('author_id').trim().notEmpty(),
@@ -165,8 +142,68 @@ const validators = {
     body('map_picture_url').trim().optional(),
     body('situation').trim().notEmpty(),
     body('required_time').trim().notEmpty(),
-    handleValidationResult
-  ]
+    handleValidationResult,
+  ],
+
+  articleValidator: [
+    body('title').trim().notEmpty(),
+    body('content').trim().notEmpty(),
+    body('location').optional().trim(),
+    body('tags')
+      .optional()
+      .toArray()
+      .customSanitizer((tags) => {
+        return tags.filter((tag) => tag)
+      }),
+    body('coordinate')
+      .optional()
+      .isObject()
+      .customSanitizer((coordinate) => {
+        return { x: coordinate.x, y: coordinate.y }
+      }),
+    body('coordinate.x').optional().toFloat().isFloat({ min: 0 }),
+    body('coordinate.y').optional().toFloat().isFloat({ min: 0 }),
+    body('altitude').optional().toInt().isInt(),
+    body('length').optional().toInt().isInt({ min: 0 }),
+    body('departure_time', 'format: yyyy-mm-dd hh:mm:ss').optional().isISO8601(),
+    body('end_time').optional().isISO8601(),
+    body('time_spent').optional().toInt().isInt({ min: 0 }),
+    body('cover_picture_url').optional().isURL(),
+    body('gpx_url').optional().isURL(),
+    handleValidationResult,
+  ],
+
+  updateArticleValidator: [
+    body('title').optional().trim(),
+    body('content').optional().trim(),
+    body('location').optional().trim(),
+    body('tags')
+      .optional()
+      .toArray()
+      .customSanitizer((tags) => {
+        return tags.filter((tag) => tag)
+      }),
+    body('coordinate')
+      .optional()
+      .isObject()
+      .customSanitizer((coordinate) => {
+        return { x: coordinate.x, y: coordinate.y }
+      }),
+    body('coordinate.x').optional().toFloat().isFloat({ min: 0 }),
+    body('coordinate.y').optional().toFloat().isFloat({ min: 0 }),
+    body('altitude').optional().toInt().isInt(),
+    body('length').optional().toInt().isInt({ min: 0 }),
+    body('departure_time', 'format: yyyy-mm-dd hh:mm:ss').optional().isISO8601(),
+    body('end_time', 'format: yyyy-mm-dd hh:mm:ss').optional().isISO8601(),
+    body('time_spent').optional().toInt().isInt({ min: 0 }),
+    body('cover_picture_url').optional().isURL(),
+    body('gpx_url').optional().isURL(),
+    body('is_deleted')
+      .optional()
+      .isBoolean()
+      .customSanitizer((value) => (value === 'true' || value === '1' ? 1 : 0)),
+    handleValidationResult,
+  ],
 }
 
 module.exports = validators
