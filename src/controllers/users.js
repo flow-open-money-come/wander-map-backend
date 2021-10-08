@@ -5,6 +5,7 @@ const { generalLogger: logger } = require('../logger')
 const userModel = require('../models/users')
 const articleModel = require('../models/articles')
 const trailModel = require('../models/trails')
+const { getPermissionLevel } = require('../utils')
 const { INVALID_INPUT, FORBIDDEN_ACTION, DUPLICATE_EMAIL, LOGIN_ERROR } = require('../constants/errors')
 
 const saltRounds = 10
@@ -89,7 +90,7 @@ const userController = {
 
   getUsers: async (req, res, next) => {
     const { tokenPayload } = res.locals
-    if (tokenPayload.role !== 'admin') return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload) < 3) return res.status(403).json(FORBIDDEN_ACTION)
 
     const { limit, offset, cursor } = req.query
     const options = {
@@ -124,9 +125,9 @@ const userController = {
 
   getUser: async (req, res, next) => {
     const { userId } = req.params
-
     const { tokenPayload } = res.locals
-    if (tokenPayload.user_id !== userId && tokenPayload.role !== 'admin') return res.status(403).json(FORBIDDEN_ACTION)
+
+    if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
 
     try {
       const options = {
@@ -147,14 +148,15 @@ const userController = {
   editUser: async (req, res, next) => {
     const { userId } = req.params
     let { nickname, iconUrl, password, role } = req.body
-
     const { tokenPayload } = res.locals
-    if (tokenPayload.user_id !== userId && tokenPayload.role !== 'admin') return res.status(403).json(FORBIDDEN_ACTION)
+    const permissionLevel = getPermissionLevel(tokenPayload, userId)
+
+    if (permissionLevel < 2) return res.status(403).json(FORBIDDEN_ACTION)
 
     try {
       if (password) password = await bcrypt.hash(password, saltRounds)
       const columns = { nickname, icon_url: iconUrl, password }
-      if (tokenPayload.role === 'admin' && role) {
+      if (permissionLevel > 2 && role) {
         const validValues = ['admin', 'member', 'suspended', 1, 2, 3]
         if (!validValues.includes(role)) return res.status(400).json(INVALID_INPUT)
         columns.role = role
@@ -229,9 +231,9 @@ const userController = {
   likeArticle: async (req, res, next) => {
     const { articleId } = req.body
     const { userId } = req.params
-
     const { tokenPayload } = res.locals
-    if (tokenPayload.user_id !== userId && tokenPayload.role !== 'admin') return res.status(403).json(FORBIDDEN_ACTION)
+
+    if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
 
     articleModel.createLikeAssociation(userId, articleId, (err, results) => {
       if (err) return next(err)
@@ -245,9 +247,9 @@ const userController = {
 
   unlikeArticle: (req, res, next) => {
     const { userId, articleId } = req.params
-
     const { tokenPayload } = res.locals
-    if (tokenPayload.user_id !== userId && tokenPayload.role !== 'admin') return res.status(403).json(FORBIDDEN_ACTION)
+
+    if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
 
     articleModel.deleteLikeAssociation(userId, articleId, (err, results) => {
       if (err) return next(err)
@@ -314,9 +316,9 @@ const userController = {
   collectTrail: async (req, res, next) => {
     const { userId } = req.params
     const { trailId } = req.body
-
     const { tokenPayload } = res.locals
-    if (tokenPayload.user_id !== userId && tokenPayload.role !== 'admin') return res.status(403).json(FORBIDDEN_ACTION)
+
+    if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
 
     try {
       const result = await trailModel.createCollectAssociation(userId, trailId)
@@ -332,9 +334,9 @@ const userController = {
 
   cancelCollectTrail: async (req, res, next) => {
     const { userId, trailId } = req.params
-
     const { tokenPayload } = res.locals
-    if (tokenPayload.user_id !== userId && tokenPayload.role !== 'admin') return res.status(403).json(FORBIDDEN_ACTION)
+
+    if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
 
     try {
       const result = await trailModel.deleteCollectAssociation(userId, trailId)

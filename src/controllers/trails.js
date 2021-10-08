@@ -1,4 +1,5 @@
 const trailsModel = require('../models/trails')
+const articleModel = require('../models/articles')
 
 const trailsController = {
   getAll: async (req, res, next) => {
@@ -105,17 +106,75 @@ const trailsController = {
   },
 
   getComments: async (req, res, next) => {
-    const { id } = req.params
+    const { trailId } = req.params
     try {
-      const results = await trailsModel.findCommentsByTrailId(id)
+      const results = await trailsModel.findCommentsByTrailId(trailId)
       res.json({
         success: true,
-        message: `get trail-${id} comments`,
+        message: `get trail-${trailId} comments`,
         data: results
       })
     } catch (err) {
       next(err)
     }
+  },
+
+  addComment: async (req, res, next) => {
+    const { trailId } = req.params
+    const comment = req.body
+    try {
+      const results = await trailsModel.addCommentByTrailId(trailId, comment)
+      res.json({
+        success: true,
+        message: `leave trail-${trailId} comment: ${comment.content}`,
+        data: results
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  updateComment: async (req, res, next) => {
+    const { commentId } = req.params
+    const comment = req.body
+    try {
+      const results = await trailsModel.updateCommentByCommentId(commentId, comment)
+      res.json({
+        success: true,
+        message: `update comment to: ${comment.content}`,
+        data: results
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  deleteComment: async (req, res, next) => {
+    const { commentId } = req.params
+    try {
+      const results = await trailsModel.deleteCommentByCommentId(commentId)
+      res.json({
+        success: true,
+        message: `delete comment-${commentId}`,
+        data: results
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  getArticles: async (req, res, next) => {
+    const { trailId } = req.params
+
+    articleModel.findByTrailId(trailId, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: `articles of trail-${trailId}`,
+        data: results
+      })
+    })
+
   }
 }
 

@@ -1,14 +1,39 @@
-const articleController = require('../../controllers/articles')
 const articleRouter = require('express').Router()
-const { paramValidator, paginationAndSearchValidator } = require('../../middlewares/validators')
+const articleController = require('../../controllers/articles')
+const auth = require('../../middlewares/auth')
+const {
+  paramValidator,
+  articleValidator,
+  updateArticleValidator,
+  paginationAndSearchValidator
+} = require('../../middlewares/validators')
+const { PATH_ERROR } = require('../../constants/errors')
 
-articleRouter.post('/', articleController.addArticle)
+articleRouter.post('/', auth, articleValidator, articleController.addArticle)
 articleRouter.get('/', paginationAndSearchValidator, articleController.getArticles)
-articleRouter.get('/hot', paramValidator, articleController.getHotArticles)
-articleRouter.get('/:id', paramValidator, articleController.getArticle)
-articleRouter.patch('/:id', paramValidator, articleController.updateArticle)
-articleRouter.delete('/:id', paramValidator, articleController.deleteArticle)
-articleRouter.get('/:id/comments', paramValidator, articleController.getComments)
+articleRouter.get('/hot', paginationAndSearchValidator, articleController.getHotArticles)
+articleRouter.get('/:articleId', paramValidator, articleController.getArticle)
+articleRouter.patch(
+  '/:articleId',
+  auth,
+  paramValidator,
+  updateArticleValidator,
+  articleController.updateArticle
+)
+articleRouter.delete('/:articleId', auth, paramValidator, articleController.deleteArticle)
+articleRouter.get(
+  '/:articleId/messages',
+  paramValidator,
+  paginationAndSearchValidator,
+  articleController.getMessages
+)
+
+articleRouter.post('/:articleId/relate-trail', paramValidator, articleController.relateTrail)
+articleRouter.delete(
+  '/:articleId/relate-trail/:trailId',
+  paramValidator,
+  articleController.unRelateTrail
+)
 
 articleRouter.all('*', (req, res) => res.status(400).json(PATH_ERROR))
 
