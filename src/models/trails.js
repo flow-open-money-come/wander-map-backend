@@ -162,10 +162,46 @@ const trailModel = {
   },
 
   findCommentsByTrailId: async (id) => {
-    const sql = `SELECT * FROM comments WHERE trail_id = ?`
+    const sql = `SELECT * FROM comments AS C 
+                 LEFT JOIN (SELECT user_id, nickname, icon_url FROM users)AS U 
+                 on C.author_id = U.user_id 
+                 WHERE trail_id = ?`
     logger.debug(sql)
     try {
       const [rows, fields] = await pool.query(sql, id)
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
+  addCommentByTrailId: async (trailId, comment) => {
+    const sql = `INSERT INTO comments(trail_id, author_id, content) VALUE (?, ?, ?)`
+    logger.debug(sql)
+    try {
+      const [rows, fields] = await pool.query(sql, [trailId, comment.author_id, comment.content])
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
+  updateCommentByCommentId: async (commentId, comment) => {
+    const sql = `UPDATE comments SET content = ? WHERE comment_id =?`
+    logger.debug(sql)
+    try {
+      const [rows, fields] = await pool.query(sql, [comment.content, commentId])
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
+  deleteCommentByCommentId: async (commentId) => {
+    const sql = `DELETE FROM comments WHERE comment_id = ?`
+    logger.debug(sql)
+    try {
+      const [rows, fields] = await pool.query(sql, commentId)
       return rows
     } catch (err) {
       throw err

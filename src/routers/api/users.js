@@ -94,7 +94,6 @@ userRouter.post('/login', loginValidator, userController.login)
  */
 // 單純實作 JWT 使用者會無法主動登出
 // userRouter.get('/logout', (req, res) => res.json('here is users logout'))
-userRouter.get('/testAuth', auth, (req, res) => res.json('auth success!!'))
 
 /**
  * @swagger
@@ -141,5 +140,5 @@ userRouter.get('/:userId/collected-trails', paramValidator, paginationAndSearchV
 userRouter.post('/:userId/collected-trails', auth, paramValidator, collectedTrailsValidator, userController.collectTrail)
 userRouter.delete('/:userId/collected-trails/:trailId', auth, paramValidator, userController.cancelCollectTrail)
 
-userRouter.all('*', (req, res) => res.status(400).json(PATH_ERROR))
+userRouter.all('*', (req, res) => res.status(404).json(PATH_ERROR))
 module.exports = userRouter

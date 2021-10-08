@@ -1,11 +1,12 @@
 const todoModel = require('../models/todos')
 const { FORBIDDEN_ACTION } = require('../constants/errors')
+const { getPermissionLevel } = require('../utils')
 
 async function checkTodoPermission({ tokenPayload, todoId, userId }) {
   const todoOwnerId = userId || (await todoModel.getTodoOwner(todoId))[0]?.user_id
   if (!todoOwnerId) throw new Error('cannot find todo')
 
-  if (tokenPayload.user_id !== todoOwnerId && tokenPayload.role !== 'admin') return false
+  if (getPermissionLevel(tokenPayload, todoOwnerId) < 2) return false
   return true
 }
 
@@ -30,6 +31,12 @@ const todoController = {
         data: { todos },
       })
     } catch (err) {
+      if (err.message === 'cannot find todo')
+        res.status(404).json({
+          success: false,
+          message: 'todo not found',
+          data: {},
+        })
       next(err)
     }
   },
@@ -56,6 +63,12 @@ const todoController = {
         data: { result },
       })
     } catch (err) {
+      if (err.message === 'cannot find todo')
+        res.status(404).json({
+          success: false,
+          message: 'todo not found',
+          data: {},
+        })
       next(err)
     }
   },
@@ -94,6 +107,12 @@ const todoController = {
         data: { result },
       })
     } catch (err) {
+      if (err.message === 'cannot find todo')
+        res.status(404).json({
+          success: false,
+          message: 'todo not found',
+          data: {},
+        })
       next(err)
     }
   },
