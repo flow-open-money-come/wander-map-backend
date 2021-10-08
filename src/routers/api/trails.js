@@ -14,11 +14,12 @@ trailRouter.post('/', postTrailsValidator, trailsController.add)
 trailRouter.patch('/:id', paramValidator, postTrailsValidator, trailsController.update)
 trailRouter.delete('/:id', paramValidator, trailsController.delete)
 
+trailRouter.get('/:trailId/articles', paramValidator, trailsController.getArticles)
+
 trailRouter.get('/:trailId/comments', paramValidator, trailsController.getComments)
 trailRouter.post('/:trailId/comments', paramValidator, trailsController.addComment)
 trailRouter.patch('/:trailId/comments/:commentId', paramValidator, trailsController.updateComment)
 trailRouter.delete('/:trailId/comments/:commentId', paramValidator, trailsController.deleteComment)
-
 
 trailRouter.all('*', (req, res) => res.status(400).json(PATH_ERROR))
 

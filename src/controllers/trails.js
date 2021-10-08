@@ -1,4 +1,5 @@
 const trailsModel = require('../models/trails')
+const articleModel = require('../models/articles')
 
 const trailsController = {
   getAll: async (req, res, next) => {
@@ -160,6 +161,20 @@ const trailsController = {
     } catch (err) {
       next(err)
     }
+  },
+
+  getArticles: async (req, res, next) => {
+    const { trailId } = req.params
+
+    articleModel.findByTrailId(trailId, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: `articles of trail-${trailId}`,
+        data: results
+      })
+    })
+
   }
 }
 
