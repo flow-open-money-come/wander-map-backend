@@ -1,5 +1,6 @@
 const { INVALID_INPUT } = require('../constants/errors')
 const articleModel = require('../models/articles')
+const userModel = require('../models/users')
 const { getPermissionLevel } = require('../utils')
 
 function checkArticlePermission(res, tokenPayload, articleId, cb) {
@@ -7,14 +8,28 @@ function checkArticlePermission(res, tokenPayload, articleId, cb) {
     if (err) return cb(err)
 
     const authorId = result[0].author_id
-    if (getPermissionLevel(tokenPayload, authorId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, authorId) < 2)
+      return res.status(403).json(FORBIDDEN_ACTION)
     cb(null)
   })
 }
 
 const articleController = {
   addArticle: (req, res, next) => {
-    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url } = req.body
+    const {
+      title,
+      content,
+      location,
+      tags,
+      coordinate,
+      altitude,
+      length,
+      departure_time,
+      end_time,
+      time_spent,
+      cover_picture_url,
+      gpx_url,
+    } = req.body
     const { tokenPayload } = res.locals
     const authorId = tokenPayload.user_id
     const article = {
@@ -36,25 +51,32 @@ const articleController = {
       if (!article[column] && article[column] !== 0) delete article[column]
     }
 
-    if (getPermissionLevel(tokenPayload, authorId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, authorId) < 2)
+      return res.status(403).json(FORBIDDEN_ACTION)
 
     articleModel.add(article, (err, articleResult) => {
       if (err) return next(err)
 
-      articleModel.createTagAssociation(articleResult.insertId, tags, (err, result) => {
-        if (err) return next(err)
+      articleModel.createTagAssociation(
+        articleResult.insertId,
+        tags,
+        (err, result) => {
+          if (err) return next(err)
 
-        res.json({
-          success: true,
-          message: 'OK',
-          data: result,
-        })
-      })
+          userModel
+          res.json({
+            success: true,
+            message: 'OK',
+            data: result,
+          })
+        }
+      )
     })
   },
 
   getArticles: (req, res, next) => {
-    const { location, altitude, length, limit, offset, cursor, search, tag } = req.query
+    const { location, altitude, length, limit, offset, cursor, search, tag } =
+      req.query
 
     const options = {
       location,
@@ -116,7 +138,21 @@ const articleController = {
   updateArticle: (req, res, next) => {
     const { articleId } = req.params
     const { tokenPayload } = res.locals
-    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url, is_deleted } = req.body
+    const {
+      title,
+      content,
+      location,
+      tags,
+      coordinate,
+      altitude,
+      length,
+      departure_time,
+      end_time,
+      time_spent,
+      cover_picture_url,
+      gpx_url,
+      is_deleted,
+    } = req.body
     const article = {
       title,
       content,
@@ -155,18 +191,22 @@ const articleController = {
               })
             })
           }
-          articleModel.deleteTagAssociationNotInList(articleId, tags, (err, result) => {
-            if (err) return next(err)
-
-            articleModel.findById(articleId, (err, results) => {
+          articleModel.deleteTagAssociationNotInList(
+            articleId,
+            tags,
+            (err, result) => {
               if (err) return next(err)
-              res.json({
-                success: true,
-                message: 'OK',
-                data: results,
+
+              articleModel.findById(articleId, (err, results) => {
+                if (err) return next(err)
+                res.json({
+                  success: true,
+                  message: 'OK',
+                  data: results,
+                })
               })
-            })
-          })
+            }
+          )
         })
       })
     })
@@ -190,8 +230,14 @@ const articleController = {
   },
 
   getMessages: (req, res, next) => {
-    const { id } = req.params
-    articleModel.findMessagesById(id, (err, results) => {
+    const { articleId } = req.params
+    const { limit, cursor, offset } = req.query
+    const options = {
+      limit: limit || 5,
+      cursor,
+      offset,
+    }
+    articleModel.findMessagesById(articleId, options, (err, results) => {
       if (err) return next(err)
       res.json({
         success: true,
@@ -202,9 +248,17 @@ const articleController = {
   },
 
   addMessage: (req, res, next) => {
-    const { id } = req.params
-    const message = req.body
-    articleModel.addMessage(id, message, (err, results) => {
+    const { articleId } = req.params
+    const { content } = req.body
+    const { tokenPayload } = res.locals
+    const authorId = tokenPayload.user_id
+
+    if (getPermissionLevel(tokenPayload, authorId) < 2)
+      return res.status(403).json(FORBIDDEN_ACTION)
+
+    if (!content) return res.status(403).json(INVALID_INPUT)
+
+    articleModel.addMessage(articleId, authorId, content, (err, results) => {
       if (err) return next(err)
       res.json({
         success: true,
@@ -215,27 +269,46 @@ const articleController = {
   },
 
   deleteMessage: (req, res, next) => {
-    const { messageId } = req.params
-    articleModel.deleteMessage(messageId, (err, results) => {
+    const { messageId, articleId } = req.params
+    const { tokenPayload } = res.locals
+    const authorId = tokenPayload.user_id
+
+    checkArticlePermission(res, tokenPayload, articleId, (err) => {
       if (err) return next(err)
-      res.json({
-        success: true,
-        message: 'OK',
-        data: results,
+
+      articleModel.deleteMessage(messageId, authorId, (err, results) => {
+        if (err) return next(err)
+        res.json({
+          success: true,
+          message: 'OK',
+          data: results,
+        })
       })
     })
   },
 
   updateMessage: (req, res, next) => {
-    const { messageId } = req.params
-    const message = req.body
-    articleModel.updateMessage(messageId, message, (err, results) => {
+    const { messageId, articleId } = req.params
+    const { content } = req.body
+    const { tokenPayload } = res.locals
+    const authorId = tokenPayload.user_id
+
+    checkArticlePermission(res, tokenPayload, articleId, (err) => {
       if (err) return next(err)
-      res.json({
-        success: true,
-        message: 'OK',
-        data: results,
-      })
+
+      articleModel.updateMessage(
+        messageId,
+        authorId,
+        content,
+        (err, results) => {
+          if (err) return next(err)
+          res.json({
+            success: true,
+            message: 'OK',
+            data: results,
+          })
+        }
+      )
     })
   },
 }

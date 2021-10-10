@@ -11,7 +11,9 @@ function sendQuery(sql, values, cb) {
 
 function getTagId(tags, cb) {
   if (!tags || tags.length === 0) return cb(null, [])
-  const sql = `SELECT tag_id FROM tags WHERE tag_name IN(${Array(tags.length).fill('?').join(', ')});`
+  const sql = `SELECT tag_id FROM tags WHERE tag_name IN(${Array(tags.length)
+    .fill('?')
+    .join(', ')});`
   sendQuery(sql, tags, cb)
 }
 
@@ -54,7 +56,11 @@ function getTagSearchingSuffix(tags = []) {
   return { sql, value }
 }
 
-function combineTagAndPaginationSuffix(originQuery = { sql: '', values: [] }, tagSuffix = false, paginationSuffix = false) {
+function combineTagAndPaginationSuffix(
+  originQuery = { sql: '', values: [] },
+  tagSuffix = false,
+  paginationSuffix = false
+) {
   if (tagSuffix) {
     originQuery.sql += tagSuffix.sql
     originQuery.values.push(tagSuffix.value)
@@ -63,14 +69,24 @@ function combineTagAndPaginationSuffix(originQuery = { sql: '', values: [] }, ta
   if (paginationSuffix && /GROUP BY A.article_id/.test(paginationSuffix.sql)) {
     originQuery.sql = originQuery.sql.replace('GROUP BY A.article_id', '')
     if (tagSuffix) {
-      originQuery.sql = originQuery.sql.replace(`HAVING GROUP_CONCAT(T.tag_name SEPARATOR ', ') REGEXP ?`, '')
+      originQuery.sql = originQuery.sql.replace(
+        `HAVING GROUP_CONCAT(T.tag_name SEPARATOR ', ') REGEXP ?`,
+        ''
+      )
       const tagValue = originQuery.values.pop()
 
-      paginationSuffix.sql = paginationSuffix.sql.replace('GROUP BY A.article_id', `GROUP BY A.article_id HAVING GROUP_CONCAT(T.tag_name SEPARATOR ', ') REGEXP ?`)
+      paginationSuffix.sql = paginationSuffix.sql.replace(
+        'GROUP BY A.article_id',
+        `GROUP BY A.article_id HAVING GROUP_CONCAT(T.tag_name SEPARATOR ', ') REGEXP ?`
+      )
       const limitValue = paginationSuffix.values.pop()
 
       originQuery.sql += paginationSuffix.sql
-      originQuery.values = originQuery.values.concat([...paginationSuffix.values, tagValue, limitValue])
+      originQuery.values = originQuery.values.concat([
+        ...paginationSuffix.values,
+        tagValue,
+        limitValue,
+      ])
     } else {
       originQuery.sql += paginationSuffix.sql
       originQuery.values = originQuery.values.concat(paginationSuffix.values)
@@ -100,8 +116,13 @@ const articleModel = {
                   .join(', ')})`
     let values = Object.values(article)
 
-    if ((coordinate?.x || coordinate?.x === 0) && (coordinate?.y || coordinate?.y === 0)) {
-      sql = sql.replace(')', ', coordinate)').replace('?)', '?, ST_PointFromText("POINT(? ?)"))')
+    if (
+      (coordinate?.x || coordinate?.x === 0) &&
+      (coordinate?.y || coordinate?.y === 0)
+    ) {
+      sql = sql
+        .replace(')', ', coordinate)')
+        .replace('?)', '?, ST_PointFromText("POINT(? ?)"))')
       values = values.concat([Number(coordinate.x), Number(coordinate.y)])
     }
     sql += ';'
@@ -121,7 +142,11 @@ const articleModel = {
 
     const tagSuffix = getTagSearchingSuffix(options.tag)
     const paginationSuffix = getArticlePaginationSuffix(options)
-    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
+    const query = combineTagAndPaginationSuffix(
+      { sql, values },
+      tagSuffix,
+      paginationSuffix
+    )
 
     sql = query.sql + ';'
     values = query.values
@@ -148,7 +173,11 @@ const articleModel = {
 
     const tagSuffix = getTagSearchingSuffix(options.tag)
     const paginationSuffix = getArticlePaginationSuffix(options)
-    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
+    const query = combineTagAndPaginationSuffix(
+      { sql, values },
+      tagSuffix,
+      paginationSuffix
+    )
 
     sql = query.sql + ';'
     values = query.values
@@ -175,14 +204,24 @@ const articleModel = {
     let values = []
     let sql = `UPDATE articles SET `
 
-    const columnNames = Object.keys(article).filter((data) => data !== 'coordinate')
+    const columnNames = Object.keys(article).filter(
+      (data) => data !== 'coordinate'
+    )
 
     sql += columnNames.join(' = ?, ') + ` = ? `
-    values = Object.values(article).filter((data) => data !== article.coordinate)
+    values = Object.values(article).filter(
+      (data) => data !== article.coordinate
+    )
 
-    if ((article.coordinate?.x || article.coordinate?.x === 0) && (article.coordinate?.y || article.coordinate?.y === 0)) {
+    if (
+      (article.coordinate?.x || article.coordinate?.x === 0) &&
+      (article.coordinate?.y || article.coordinate?.y === 0)
+    ) {
       sql += `, coordinate = ST_PointFromText("POINT(? ?)")`
-      values = values.concat([Number(article.coordinate.x), Number(article.coordinate.y)])
+      values = values.concat([
+        Number(article.coordinate.x),
+        Number(article.coordinate.y),
+      ])
     } else {
       if (columnNames.length === 0) return cb(null, 'nothing to update')
     }
@@ -199,12 +238,26 @@ const articleModel = {
     sendQuery(sql, values, cb)
   },
 
-  findMessagesById: (id, cb) => {
-    const sql = `SELECT * FROM messages as M 
+  findMessagesById: (articleId, options, cb) => {
+    let sql = `SELECT * FROM messages as M 
                 LEFT JOIN (SELECT user_id, nickname, icon_url FROM users) AS U 
                 on M.author_id = U.user_id
                 WHERE article_id = ?`
-    const values = [id]
+    let values = [articleId]
+    if (options.limit) {
+      if (options.cursor) {
+        sql += ' AND message_id >= ? LIMIT ?'
+        values.push(Number(options.cursor))
+        values.push(Number(options.limit))
+      } else if (options.offset || options.offset === 0) {
+        sql += ' LIMIT ? OFFSET ?'
+        values.push(Number(options.limit))
+        values.push(Number(options.offset))
+      } else {
+        sql += ' LIMIT ?'
+        values.push(Number(options.limit))
+      }
+    }
     sendQuery(sql, values, cb)
   },
 
@@ -227,7 +280,11 @@ const articleModel = {
 
     const tagSuffix = getTagSearchingSuffix(options.tag)
     const paginationSuffix = getArticlePaginationSuffix(options)
-    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
+    const query = combineTagAndPaginationSuffix(
+      { sql, values },
+      tagSuffix,
+      paginationSuffix
+    )
 
     sql = query.sql + ';'
     values = query.values
@@ -255,7 +312,11 @@ const articleModel = {
 
     const tagSuffix = getTagSearchingSuffix(options.tag)
     const paginationSuffix = getArticlePaginationSuffix(options)
-    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
+    const query = combineTagAndPaginationSuffix(
+      { sql, values },
+      tagSuffix,
+      paginationSuffix
+    )
 
     sql = query.sql + ';'
     values = query.values
@@ -280,21 +341,21 @@ const articleModel = {
     sendQuery(sql, values, cb)
   },
 
-  addMessage: (articleId, message, cb) => {
+  addMessage: (articleId, authorId, content, cb) => {
     const sql = `INSERT INTO messages(author_id, content, article_id) VALUES (?, ?, ?)`
-    const values = [message.author_id, message.content, articleId]
+    const values = [authorId, content, articleId]
     sendQuery(sql, values, cb)
   },
 
-  deleteMessage: (messageId, cb) => {
-    const sql = `DELETE FROM messages WHERE message_id = ?`
-    const values = [messageId]
+  deleteMessage: (messageId, authorId, cb) => {
+    const sql = `DELETE FROM messages WHERE message_id = ? AND author_id = ?`
+    const values = [messageId, authorId]
     sendQuery(sql, values, cb)
   },
 
-  updateMessage: (messageId, message, cb) => {
-    const sql = `UPDATE messages SET content = ? WHERE message_id = ?`
-    const values = [message.content, messageId]
+  updateMessage: (messageId, authorId, content, cb) => {
+    const sql = `UPDATE messages SET content = ? WHERE message_id = ? AND author_id = ?`
+    const values = [content, messageId, authorId]
     sendQuery(sql, values, cb)
   },
 
@@ -310,8 +371,13 @@ const articleModel = {
       if (tagIdArray.length === 0) return cb(null, [])
 
       const sql = `INSERT IGNORE INTO article_tag_map (article_id, tag_id)
-                    VALUES ${Array(tagIdArray.length).fill('(?, ?)').join(', ')};`
-      const values = tagIdArray.reduce((accu, curr) => accu.concat([articleId, curr.tag_id]), [])
+                    VALUES ${Array(tagIdArray.length)
+                      .fill('(?, ?)')
+                      .join(', ')};`
+      const values = tagIdArray.reduce(
+        (accu, curr) => accu.concat([articleId, curr.tag_id]),
+        []
+      )
 
       sendQuery(sql, values, cb)
     })
@@ -325,7 +391,10 @@ const articleModel = {
                     WHERE article_id = ?`
       const values = [articleId].concat(tagIdArray.map((obj) => obj.tag_id))
 
-      if (tagIdArray.length > 0) sql += `AND tag_id NOT IN (${Array(tagIdArray.length).fill('?').join(', ')})`
+      if (tagIdArray.length > 0)
+        sql += `AND tag_id NOT IN (${Array(tagIdArray.length)
+          .fill('?')
+          .join(', ')})`
       sql += ';'
       sendQuery(sql, values, cb)
     })
