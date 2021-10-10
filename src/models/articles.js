@@ -300,7 +300,7 @@ const articleModel = {
                     WHERE article_id = ?`
       const values = [articleId].concat(tagIdArray.map((obj) => obj.tag_id))
 
-      if (tagIdArray.length > 0) sql += `AND tag_id NOT IN (${Array(tagIdArray.length).fill('?').join(', ')})`
+      if (tagIdArray.length > 0) sql += ` AND tag_id NOT IN (${Array(tagIdArray.length).fill('?').join(', ')})`
       sql += ';'
       sendQuery(sql, values, cb)
     })
