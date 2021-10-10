@@ -205,6 +205,33 @@ const articleController = {
       })
     })
   },
+
+  relateTrail: (req, res, next) => {
+    const { articleId } = req.params
+    const { trail_id } = req.body
+
+    articleModel.createTrailAssociation(articleId, trail_id, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: `article-${articleId} linked to trail-${trail_id}`,
+        data: results
+      })
+    })
+  },
+
+  unRelateTrail: (req, res, next) => {
+    const { articleId, trailId } = req.params
+
+    articleModel.cancelTrailAssociation(articleId, trailId, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: `article-${articleId} unlinked to trail-${trailId}`,
+        data: results
+      })
+    })
+  }
 }
 
 module.exports = articleController
