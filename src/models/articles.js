@@ -347,21 +347,27 @@ const articleModel = {
     sendQuery(sql, values, cb)
   },
 
-  deleteMessage: (messageId, authorId, cb) => {
-    const sql = `DELETE FROM messages WHERE message_id = ? AND author_id = ?`
-    const values = [messageId, authorId]
+  deleteMessage: (messageId, cb) => {
+    const sql = `DELETE FROM messages WHERE message_id = ?`
+    const values = [messageId]
     sendQuery(sql, values, cb)
   },
 
-  updateMessage: (messageId, authorId, content, cb) => {
-    const sql = `UPDATE messages SET content = ? WHERE message_id = ? AND author_id = ?`
-    const values = [content, messageId, authorId]
+  updateMessage: (messageId, content, cb) => {
+    const sql = `UPDATE messages SET content = ? WHERE message_id = ?`
+    const values = [content, messageId]
     sendQuery(sql, values, cb)
   },
 
   getAuthorId: (articleId, cb) => {
     const sql = `SELECT author_id FROM articles WHERE article_id = ?`
     const values = [articleId]
+    sendQuery(sql, values, cb)
+  },
+
+  getMessageAuthorId: (messageId, cb) => {
+    const sql = `SELECT author_id FROM messages WHERE message_id = ?`
+    const values = [messageId]
     sendQuery(sql, values, cb)
   },
 

@@ -1,4 +1,4 @@
-const { INVALID_INPUT } = require('../constants/errors')
+const { INVALID_INPUT, FORBIDDEN_ACTION } = require('../constants/errors')
 const articleModel = require('../models/articles')
 const userModel = require('../models/users')
 const { getPermissionLevel } = require('../utils')
@@ -6,6 +6,18 @@ const { getPermissionLevel } = require('../utils')
 function checkArticlePermission(res, tokenPayload, articleId, cb) {
   articleModel.getAuthorId(articleId, (err, result) => {
     if (err) return cb(err)
+
+    const authorId = result[0].author_id
+    if (getPermissionLevel(tokenPayload, authorId) < 2)
+      return res.status(403).json(FORBIDDEN_ACTION)
+    cb(null)
+  })
+}
+
+function checkMessagePermission(res, tokenPayload, messageId, cb) {
+  articleModel.getMessageAuthorId(messageId, (err, result) => {
+    if (err) return cb(err)
+    if (!result[0]) return res.status(403).json(FORBIDDEN_ACTION)
 
     const authorId = result[0].author_id
     if (getPermissionLevel(tokenPayload, authorId) < 2)
@@ -269,14 +281,13 @@ const articleController = {
   },
 
   deleteMessage: (req, res, next) => {
-    const { messageId, articleId } = req.params
+    const { messageId } = req.params
     const { tokenPayload } = res.locals
-    const authorId = tokenPayload.user_id
 
-    checkArticlePermission(res, tokenPayload, articleId, (err) => {
+    checkMessagePermission(res, tokenPayload, messageId, (err) => {
       if (err) return next(err)
 
-      articleModel.deleteMessage(messageId, authorId, (err, results) => {
+      articleModel.deleteMessage(messageId, (err, results) => {
         if (err) return next(err)
         res.json({
           success: true,
@@ -288,27 +299,21 @@ const articleController = {
   },
 
   updateMessage: (req, res, next) => {
-    const { messageId, articleId } = req.params
+    const { messageId } = req.params
     const { content } = req.body
     const { tokenPayload } = res.locals
-    const authorId = tokenPayload.user_id
 
-    checkArticlePermission(res, tokenPayload, articleId, (err) => {
+    checkMessagePermission(res, tokenPayload, messageId, (err) => {
       if (err) return next(err)
 
-      articleModel.updateMessage(
-        messageId,
-        authorId,
-        content,
-        (err, results) => {
-          if (err) return next(err)
-          res.json({
-            success: true,
-            message: 'OK',
-            data: results,
-          })
-        }
-      )
+      articleModel.updateMessage(messageId, content, (err, results) => {
+        if (err) return next(err)
+        res.json({
+          success: true,
+          message: 'OK',
+          data: results,
+        })
+      })
     })
   },
 }
