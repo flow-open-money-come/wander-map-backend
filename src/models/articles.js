@@ -365,6 +365,7 @@ const articleModel = {
   updateMessage: (messageId, content, cb) => {
     const sql = `UPDATE messages SET content = ? WHERE message_id = ?`
     const values = [content, messageId]
+    sendQuery(sql, values, cb)
   },
 
   findByTrailId: (trailId, cb) => {

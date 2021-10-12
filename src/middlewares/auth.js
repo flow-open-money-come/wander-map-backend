@@ -7,7 +7,6 @@ async function auth(req, res, next) {
   const authHeader = req.get('authorization')
   try {
     const token = authHeader.replace('Bearer ', '')
-    console.log(token)
     res.locals.tokenPayload = jwt.verify(token, tokenSecret)
     next()
   } catch (err) {
