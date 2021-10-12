@@ -5,13 +5,21 @@ const {
   paramValidator,
   articleValidator,
   updateArticleValidator,
-  paginationAndSearchValidator
+  paginationAndSearchValidator,
 } = require('../../middlewares/validators')
 const { PATH_ERROR } = require('../../constants/errors')
 
 articleRouter.post('/', auth, articleValidator, articleController.addArticle)
-articleRouter.get('/', paginationAndSearchValidator, articleController.getArticles)
-articleRouter.get('/hot', paginationAndSearchValidator, articleController.getHotArticles)
+articleRouter.get(
+  '/',
+  paginationAndSearchValidator,
+  articleController.getArticles
+)
+articleRouter.get(
+  '/hot',
+  paginationAndSearchValidator,
+  articleController.getHotArticles
+)
 articleRouter.get('/:articleId', paramValidator, articleController.getArticle)
 articleRouter.patch(
   '/:articleId',
@@ -20,7 +28,36 @@ articleRouter.patch(
   updateArticleValidator,
   articleController.updateArticle
 )
-articleRouter.delete('/:articleId', auth, paramValidator, articleController.deleteArticle)
+articleRouter.delete(
+  '/:articleId',
+  auth,
+  paramValidator,
+  articleController.deleteArticle
+)
+articleRouter.post(
+  '/:articleId/messages',
+  auth,
+  paramValidator,
+  articleController.addMessage
+)
+articleRouter.delete(
+  '/:articleId/messages/:messageId',
+  auth,
+  paramValidator,
+  articleController.deleteMessage
+)
+articleRouter.patch(
+  '/:articleId/messages/:messageId',
+  auth,
+  paramValidator,
+  articleController.updateMessage
+)
+articleRouter.delete(
+  '/:articleId',
+  auth,
+  paramValidator,
+  articleController.deleteArticle
+)
 articleRouter.get(
   '/:articleId/messages',
   paramValidator,
@@ -28,7 +65,11 @@ articleRouter.get(
   articleController.getMessages
 )
 
-articleRouter.post('/:articleId/relate-trail', paramValidator, articleController.relateTrail)
+articleRouter.post(
+  '/:articleId/relate-trail',
+  paramValidator,
+  articleController.relateTrail
+)
 articleRouter.delete(
   '/:articleId/relate-trail/:trailId',
   paramValidator,
