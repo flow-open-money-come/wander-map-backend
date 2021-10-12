@@ -36,7 +36,6 @@ module.exports = {
       path: '/api/v1/users/refresh',
       expires: expiredAt,
       signed: process.env.COOKIE_SECRET,
-      sameSite: 'strict',
       httpOnly: true,
     }
   },
