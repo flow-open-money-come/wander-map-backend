@@ -29,6 +29,11 @@ const errors = {
     message: 'email or password error',
     data: {},
   },
+  INVALID_REFRESH_TOKEN: {
+    success: false,
+    message: 'invalid refresh token',
+    data: {},
+  },
 }
 
 module.exports = errors

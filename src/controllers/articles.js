@@ -215,7 +215,7 @@ const articleController = {
       res.json({
         success: true,
         message: `article-${articleId} linked to trail-${trail_id}`,
-        data: results
+        data: results,
       })
     })
   },
@@ -228,10 +228,10 @@ const articleController = {
       res.json({
         success: true,
         message: `article-${articleId} unlinked to trail-${trailId}`,
-        data: results
+        data: results,
       })
     })
-  }
+  },
 }
 
 module.exports = articleController

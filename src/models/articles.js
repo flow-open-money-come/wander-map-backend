@@ -21,11 +21,6 @@ function getArticlePaginationSuffix(options) {
 
   if (!options) return false
 
-  if (options.search) {
-    sql += ' AND title LIKE ?'
-    values.push(`%${options.search}%`)
-  }
-
   if (options.limit) {
     if (options.cursor) {
       sql += ` AND article_id >= ?
@@ -112,9 +107,15 @@ const articleModel = {
                 USING(article_id)
                 LEFT JOIN tags AS T
                 USING(tag_id)
-                WHERE A.is_deleted = 0
-                GROUP BY A.article_id`
+                WHERE A.is_deleted = 0`
     let values = []
+
+    if (options.search) {
+      sql += ` AND title LIKE ?`
+      values.push(`%${options?.search}%`)
+    }
+
+    sql += ` GROUP BY A.article_id`
 
     const tagSuffix = getTagSearchingSuffix(options.tag)
     const paginationSuffix = getArticlePaginationSuffix(options)
@@ -182,11 +183,12 @@ const articleModel = {
     let sql = `UPDATE articles SET `
     const columnNames = Object.keys(article).filter((data) => data !== 'coordinate')
 
-    sql += columnNames.join(' = ?, ') + ` = ? `
     values = Object.values(article).filter((data) => data !== article.coordinate)
+    if (values.length > 0) sql += columnNames.join(' = ?, ') + ` = ? `
 
     if ((article.coordinate?.x || article.coordinate?.x === 0) && (article.coordinate?.y || article.coordinate?.y === 0)) {
-      sql += `, coordinate = ST_PointFromText("POINT(? ?)")`
+      if (values === 0) sql += ','
+      sql += ` coordinate = ST_PointFromText("POINT(? ?)")`
       values = values.concat([Number(article.coordinate.x), Number(article.coordinate.y)])
     } else {
       if (columnNames.length === 0) return cb(null, 'nothing to update')

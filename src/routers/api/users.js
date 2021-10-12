@@ -93,7 +93,8 @@ userRouter.post('/login', loginValidator, userController.login)
  *                $ref: '#/components/schemas/logoutResponse'
  */
 // 單純實作 JWT 使用者會無法主動登出
-// userRouter.get('/logout', (req, res) => res.json('here is users logout'))
+userRouter.get('/logout', userController.logout)
+userRouter.get('/refresh', userController.refresh)
 
 /**
  * @swagger
