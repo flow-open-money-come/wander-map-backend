@@ -1,5 +1,6 @@
-const { INVALID_INPUT } = require('../constants/errors')
+const { INVALID_INPUT, FORBIDDEN_ACTION } = require('../constants/errors')
 const articleModel = require('../models/articles')
+const userModel = require('../models/users')
 const { getPermissionLevel } = require('../utils')
 
 function checkArticlePermission(res, tokenPayload, articleId, cb) {
@@ -7,14 +8,40 @@ function checkArticlePermission(res, tokenPayload, articleId, cb) {
     if (err) return cb(err)
 
     const authorId = result[0].author_id
-    if (getPermissionLevel(tokenPayload, authorId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, authorId) < 2)
+      return res.status(403).json(FORBIDDEN_ACTION)
+    cb(null)
+  })
+}
+
+function checkMessagePermission(res, tokenPayload, messageId, cb) {
+  articleModel.getMessageAuthorId(messageId, (err, result) => {
+    if (err) return cb(err)
+    if (!result[0]) return res.status(403).json(FORBIDDEN_ACTION)
+
+    const authorId = result[0].author_id
+    if (getPermissionLevel(tokenPayload, authorId) < 2)
+      return res.status(403).json(FORBIDDEN_ACTION)
     cb(null)
   })
 }
 
 const articleController = {
   addArticle: (req, res, next) => {
-    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url } = req.body
+    const {
+      title,
+      content,
+      location,
+      tags,
+      coordinate,
+      altitude,
+      length,
+      departure_time,
+      end_time,
+      time_spent,
+      cover_picture_url,
+      gpx_url,
+    } = req.body
     const { tokenPayload } = res.locals
     const authorId = tokenPayload.user_id
     const article = {
@@ -36,25 +63,32 @@ const articleController = {
       if (!article[column] && article[column] !== 0) delete article[column]
     }
 
-    if (getPermissionLevel(tokenPayload, authorId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, authorId) < 2)
+      return res.status(403).json(FORBIDDEN_ACTION)
 
     articleModel.add(article, (err, articleResult) => {
       if (err) return next(err)
 
-      articleModel.createTagAssociation(articleResult.insertId, tags, (err, result) => {
-        if (err) return next(err)
+      articleModel.createTagAssociation(
+        articleResult.insertId,
+        tags,
+        (err, result) => {
+          if (err) return next(err)
 
-        res.json({
-          success: true,
-          message: 'OK',
-          data: result,
-        })
-      })
+          userModel
+          res.json({
+            success: true,
+            message: 'OK',
+            data: result,
+          })
+        }
+      )
     })
   },
 
   getArticles: (req, res, next) => {
-    const { location, altitude, length, limit, offset, cursor, search, tag } = req.query
+    const { location, altitude, length, limit, offset, cursor, search, tag } =
+      req.query
 
     const options = {
       location,
@@ -116,7 +150,21 @@ const articleController = {
   updateArticle: (req, res, next) => {
     const { articleId } = req.params
     const { tokenPayload } = res.locals
-    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url, is_deleted } = req.body
+    const {
+      title,
+      content,
+      location,
+      tags,
+      coordinate,
+      altitude,
+      length,
+      departure_time,
+      end_time,
+      time_spent,
+      cover_picture_url,
+      gpx_url,
+      is_deleted,
+    } = req.body
     const article = {
       title,
       content,
@@ -155,18 +203,22 @@ const articleController = {
               })
             })
           }
-          articleModel.deleteTagAssociationNotInList(articleId, tags, (err, result) => {
-            if (err) return next(err)
-
-            articleModel.findById(articleId, (err, results) => {
+          articleModel.deleteTagAssociationNotInList(
+            articleId,
+            tags,
+            (err, result) => {
               if (err) return next(err)
-              res.json({
-                success: true,
-                message: 'OK',
-                data: results,
+
+              articleModel.findById(articleId, (err, results) => {
+                if (err) return next(err)
+                res.json({
+                  success: true,
+                  message: 'OK',
+                  data: results,
+                })
               })
-            })
-          })
+            }
+          )
         })
       })
     })
@@ -191,11 +243,70 @@ const articleController = {
 
   getMessages: (req, res, next) => {
     const { articleId } = req.params
-    articleModel.findById(articleId, (err, results) => {
+    const { limit, cursor, offset } = req.query
+    const options = {
+      limit: limit || 5,
+      cursor,
+      offset,
+    }
+    articleModel.findMessagesById(articleId, options, (err, results) => {
       if (err) return next(err)
-      if (!results[0]) return res.status(403).json(INVALID_INPUT)
-      const author = results[0].author_id
-      articleModel.findMessagesById(articleId, author, (err, results) => {
+      res.json({
+        success: true,
+        message: 'OK',
+        data: results,
+      })
+    })
+  },
+
+  addMessage: (req, res, next) => {
+    const { articleId } = req.params
+    const { content } = req.body
+    const { tokenPayload } = res.locals
+    const authorId = tokenPayload.user_id
+
+    if (getPermissionLevel(tokenPayload, authorId) < 2)
+      return res.status(403).json(FORBIDDEN_ACTION)
+
+    if (!content) return res.status(403).json(INVALID_INPUT)
+
+    articleModel.addMessage(articleId, authorId, content, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: 'OK',
+        data: results,
+      })
+    })
+  },
+
+  deleteMessage: (req, res, next) => {
+    const { messageId } = req.params
+    const { tokenPayload } = res.locals
+
+    checkMessagePermission(res, tokenPayload, messageId, (err) => {
+      if (err) return next(err)
+
+      articleModel.deleteMessage(messageId, (err, results) => {
+        if (err) return next(err)
+        res.json({
+          success: true,
+          message: 'OK',
+          data: results,
+        })
+      })
+    })
+  },
+
+  updateMessage: (req, res, next) => {
+    const { messageId } = req.params
+    const { content } = req.body
+    const { tokenPayload } = res.locals
+
+    checkMessagePermission(res, tokenPayload, messageId, (err) => {
+      if (err) return next(err)
+
+      articleModel.updateMessage(messageId, content, (err, results) => {
         if (err) return next(err)
         res.json({
           success: true,
