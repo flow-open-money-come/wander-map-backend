@@ -89,7 +89,7 @@ const validators = {
 
   registerValidator: [
     body('nickname', 'nickname must not be empty').trim().notEmpty(),
-    body('email', 'email format error').trim().normalizeEmail().isEmail(),
+    body('email', '電子郵件格式不符').trim().normalizeEmail().isEmail(),
     body('password', 'Password must be at least 8 characters long and include at least 1 number & 1 alphabetical character')
       .trim()
       .custom((value) => {

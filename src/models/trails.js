@@ -93,7 +93,7 @@ const trailModel = {
         Number(trailInfo.coordinateY),
         trailInfo.cover_picture_url,
         trailInfo.map_picture_url,
-        trailInfo.required_time
+        trailInfo.required_time,
       ])
       return rows
     } catch (err) {
@@ -123,7 +123,7 @@ const trailModel = {
         trailInfo.map_picture_url,
         trailInfo.required_time,
         trailInfo.is_deleted,
-        id
+        id,
       ])
       return rows
     } catch (err) {
@@ -146,7 +146,7 @@ const trailModel = {
     const sql = `SELECT T.*
                 FROM (
                   SELECT trail_id, COUNT(trail_id) AS count
-                    FROM final_project_dev.collects
+                    FROM collects
                     GROUP BY trail_id
                     ORDER BY count DESC LIMIT ?
                     ) AS L
@@ -276,7 +276,7 @@ const trailModel = {
     } catch (err) {
       throw err
     }
-  }
+  },
 }
 
 module.exports = trailModel

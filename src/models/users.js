@@ -13,7 +13,7 @@ const userModel = {
     }
   },
 
-  findOne: async ({ columns = '*', where }) => {
+  find: async ({ columns = '*', where }) => {
     let sql = `SELECT ${columns} FROM users`
     const values = []
 

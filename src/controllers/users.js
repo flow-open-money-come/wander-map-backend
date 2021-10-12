@@ -5,8 +5,9 @@ const { generalLogger: logger } = require('../logger')
 const userModel = require('../models/users')
 const articleModel = require('../models/articles')
 const trailModel = require('../models/trails')
-const { getPermissionLevel } = require('../utils')
-const { INVALID_INPUT, FORBIDDEN_ACTION, DUPLICATE_EMAIL, LOGIN_ERROR } = require('../constants/errors')
+const refreshTokenModel = require('../models/refreshTokens')
+const { getPermissionLevel, generateRefreshToken, getCookieExpireTime, getCookieOptions } = require('../utils')
+const { INVALID_INPUT, FORBIDDEN_ACTION, DUPLICATE_EMAIL, LOGIN_ERROR, INVALID_REFRESH_TOKEN } = require('../constants/errors')
 
 const saltRounds = 10
 const tokenSecret = process.env.JWT_TOKEN_SECRET
@@ -16,18 +17,18 @@ const userController = {
     const { nickname, email, password } = req.body
 
     try {
-      let users = await userModel.findOne({ where: { email } })
-      // 409 代表請求與目前伺服器狀態衝突，但 google、facebook 等大公司都回 200
+      let users = await userModel.find({ where: { email } })
+      // 409 代表請求與目前伺服器狀態衝突，但 google、facebook 等等都回 200
       if (users.length !== 0) return res.status(200).json(DUPLICATE_EMAIL)
 
       const hash = await bcrypt.hash(password, saltRounds)
-      result = await userModel.create({
+      const result = await userModel.create({
         nickname,
         email,
         hash,
       })
 
-      users = await userModel.findOne({ where: { user_id: result.insertId } })
+      users = await userModel.find({ where: { user_id: result.insertId } })
       const { user_id, icon_url, role, updated_at, created_at } = users[0]
       const token = jwt.sign(
         {
@@ -40,10 +41,18 @@ const userController = {
           created_at,
         },
         tokenSecret,
-        { expiresIn: '30d' }
+        { expiresIn: process.env.JWT_AGE }
       )
+      const expiredAt = getCookieExpireTime()
+      const cookieOptions = getCookieOptions(expiredAt)
+      let refreshToken = await generateRefreshToken()
 
-      res.status(201).json({
+      while ((await refreshTokenModel.findByToken(refreshToken).length) > 0) {
+        refreshToken = await generateRefreshToken()
+      }
+      await refreshTokenModel.save(user_id, refreshToken, expiredAt)
+
+      res.status(201).cookie('refreshToken', refreshToken, cookieOptions).json({
         success: true,
         message: 'registration success',
         data: { token },
@@ -57,10 +66,18 @@ const userController = {
     const { email, password } = req.body
 
     try {
-      const users = await userModel.findOne({ where: { email } })
+      const users = await userModel.find({ where: { email } })
       if (users.length === 0) return res.status(401).json(LOGIN_ERROR)
 
-      const { user_id, nickname, password: hash, icon_url, role, updated_at, created_at } = users[0]
+      const {
+        user_id,
+        nickname,
+        password: hash,
+        icon_url,
+        role,
+        updated_at,
+        created_at,
+      } = users[0]
       const isValid = await bcrypt.compare(password, hash)
 
       if (!isValid) return res.status(401).json(LOGIN_ERROR)
@@ -75,10 +92,19 @@ const userController = {
           created_at,
         },
         tokenSecret,
-        { expiresIn: '30d' }
+        { expiresIn: process.env.JWT_AGE }
       )
 
-      res.json({
+      const expiredAt = getCookieExpireTime()
+      const cookieOptions = getCookieOptions(expiredAt)
+      let refreshToken = await generateRefreshToken()
+
+      while ((await refreshTokenModel.findByToken(refreshToken).length) > 0) {
+        refreshToken = await generateRefreshToken()
+      }
+      await refreshTokenModel.save(user_id, refreshToken, expiredAt)
+
+      res.cookie('refreshToken', refreshToken, cookieOptions).json({
         success: true,
         message: 'logged in',
         data: { token },
@@ -88,9 +114,70 @@ const userController = {
     }
   },
 
+  logout: async (req, res, next) => {
+    const { refreshToken } = req.signedCookies
+    try {
+      await refreshTokenModel.clear(refreshToken)
+      const cookieOptions = getCookieOptions(Date.now())
+      delete cookieOptions.expires
+      res.clearCookie('refreshToken', cookieOptions).json({
+        success: true,
+        message: 'logged out',
+        data: {},
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  refresh: async (req, res, next) => {
+    const { refreshToken } = req.signedCookies
+    try {
+      const sessionInfo = (await refreshTokenModel.findByToken(refreshToken))[0]
+      if (!sessionInfo || sessionInfo.expiredAt < new Date(Date.now())) return res.status(401).json(INVALID_REFRESH_TOKEN)
+
+      const { user_id: userId } = sessionInfo
+      const expiredAt = getCookieExpireTime()
+      const cookieOptions = getCookieOptions(expiredAt)
+      let newRefreshToken = await generateRefreshToken()
+
+      while ((await refreshTokenModel.findByToken(refreshToken).length) > 0) {
+        refreshToken = await generateRefreshToken()
+      }
+
+      await refreshTokenModel.clear(refreshToken)
+      await refreshTokenModel.save(userId, newRefreshToken, expiredAt)
+
+      const user = (await userModel.find({ where: { user_id: userId } }))[0]
+      const { user_id, nickname, email, icon_url, role, updated_at, created_at } = user
+      const token = jwt.sign(
+        {
+          user_id,
+          nickname,
+          email,
+          icon_url,
+          role,
+          updated_at,
+          created_at,
+        },
+        tokenSecret,
+        { expiresIn: process.env.JWT_AGE }
+      )
+
+      res.cookie('refreshToken', newRefreshToken, cookieOptions).json({
+        success: true,
+        message: 'jwt access token',
+        data: { token },
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
   getUsers: async (req, res, next) => {
     const { tokenPayload } = res.locals
-    if (getPermissionLevel(tokenPayload) < 3) return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload) < 3)
+      return res.status(403).json(FORBIDDEN_ACTION)
 
     const { limit, offset, cursor } = req.query
     const options = {
@@ -98,7 +185,8 @@ const userController = {
       offset: offset || 0,
       cursor: cursor || 0,
     }
-    options.columns = 'user_id, nickname, email, icon_url, role, updated_at, created_at'
+    options.columns =
+      'user_id, nickname, email, icon_url, role, updated_at, created_at'
 
     try {
       const users = await userModel.findAll(options)
@@ -127,14 +215,16 @@ const userController = {
     const { userId } = req.params
     const { tokenPayload } = res.locals
 
-    if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, userId) < 2)
+      return res.status(403).json(FORBIDDEN_ACTION)
 
     try {
       const options = {
         where: { user_id: userId },
-        columns: 'user_id, nickname, email, icon_url, role, updated_at, created_at',
+        columns:
+          'user_id, nickname, email, icon_url, role, updated_at, created_at',
       }
-      const user = await userModel.findOne(options)
+      const user = await userModel.find(options)
       res.json({
         success: true,
         message: 'get user data',
@@ -158,7 +248,8 @@ const userController = {
       const columns = { nickname, icon_url: iconUrl, password }
       if (permissionLevel > 2 && role) {
         const validValues = ['admin', 'member', 'suspended', 1, 2, 3]
-        if (!validValues.includes(role)) return res.status(400).json(INVALID_INPUT)
+        if (!validValues.includes(role))
+          return res.status(400).json(INVALID_INPUT)
         columns.role = role
       }
       for (let column in columns) {
@@ -233,7 +324,8 @@ const userController = {
     const { userId } = req.params
     const { tokenPayload } = res.locals
 
-    if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, userId) < 2)
+      return res.status(403).json(FORBIDDEN_ACTION)
 
     articleModel.createLikeAssociation(userId, articleId, (err, results) => {
       if (err) return next(err)
@@ -249,7 +341,8 @@ const userController = {
     const { userId, articleId } = req.params
     const { tokenPayload } = res.locals
 
-    if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, userId) < 2)
+      return res.status(403).json(FORBIDDEN_ACTION)
 
     articleModel.deleteLikeAssociation(userId, articleId, (err, results) => {
       if (err) return next(err)
@@ -263,7 +356,8 @@ const userController = {
 
   getTrails: async (req, res, next) => {
     const { userId } = req.params
-    const { location, altitude, length, difficult, limit, offset, cursor } = req.query
+    const { location, altitude, length, difficult, limit, offset, cursor } =
+      req.query
 
     const options = {
       location,
@@ -289,7 +383,8 @@ const userController = {
 
   getCollectedTrails: async (req, res, next) => {
     const { userId } = req.params
-    const { location, altitude, length, difficult, limit, offset, cursor } = req.query
+    const { location, altitude, length, difficult, limit, offset, cursor } =
+      req.query
 
     const options = {
       location,
@@ -318,7 +413,8 @@ const userController = {
     const { trailId } = req.body
     const { tokenPayload } = res.locals
 
-    if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, userId) < 2)
+      return res.status(403).json(FORBIDDEN_ACTION)
 
     try {
       const result = await trailModel.createCollectAssociation(userId, trailId)
@@ -336,7 +432,8 @@ const userController = {
     const { userId, trailId } = req.params
     const { tokenPayload } = res.locals
 
-    if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, userId) < 2)
+      return res.status(403).json(FORBIDDEN_ACTION)
 
     try {
       const result = await trailModel.deleteCollectAssociation(userId, trailId)

@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const { UNAUTHORIZED } = require('../constants/errors')
 const tokenSecret = process.env.JWT_TOKEN_SECRET
 
-async function auth (req, res, next) {
+async function auth(req, res, next) {
   const authHeader = req.get('authorization')
   try {
     const token = authHeader.replace('Bearer ', '')
