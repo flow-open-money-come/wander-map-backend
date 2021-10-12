@@ -1,5 +1,4 @@
 const articleRouter = require('express').Router()
-
 const articleController = require('../../controllers/articles')
 const auth = require('../../middlewares/auth')
 const {
@@ -35,11 +34,6 @@ articleRouter.delete(
   paramValidator,
   articleController.deleteArticle
 )
-articleRouter.get(
-  '/:articleId/messages',
-  paramValidator,
-  articleController.getMessages
-)
 articleRouter.post(
   '/:articleId/messages',
   auth,
@@ -58,7 +52,30 @@ articleRouter.patch(
   paramValidator,
   articleController.updateMessage
 )
+articleRouter.delete(
+  '/:articleId',
+  auth,
+  paramValidator,
+  articleController.deleteArticle
+)
+articleRouter.get(
+  '/:articleId/messages',
+  paramValidator,
+  paginationAndSearchValidator,
+  articleController.getMessages
+)
 
-articleRouter.all('*', (req, res) => res.status(404).json(PATH_ERROR))
+articleRouter.post(
+  '/:articleId/relate-trail',
+  paramValidator,
+  articleController.relateTrail
+)
+articleRouter.delete(
+  '/:articleId/relate-trail/:trailId',
+  paramValidator,
+  articleController.unRelateTrail
+)
+
+articleRouter.all('*', (req, res) => res.status(400).json(PATH_ERROR))
 
 module.exports = articleRouter

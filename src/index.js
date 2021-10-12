@@ -1,6 +1,7 @@
 require('dotenv').config()
 
 const express = require('express')
+const cors = require('cors')
 const apiRouter = require('./routers/api')
 
 // const apiv2Router = require('./routers/apiv2')
@@ -11,10 +12,12 @@ const { PATH_ERROR } = require('./constants/errors')
 const app = express()
 const PORT = process.env.APP_SERVER_PORT || 8888
 
+app.use(cors())
 app.use(logRequest)
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+app.options('*', cors())
 app.use('/api/v1', apiRouter)
 // app.use('/api/v2', (req, res) => res.json('apiv2 is not ready.'))
 

@@ -185,16 +185,25 @@ const articleModel = {
   },
 
   findById: (articleId, cb) => {
-    const sql = `SELECT A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
-                FROM articles AS A
-                LEFT JOIN article_tag_map AS M
-                USING(article_id)
-                LEFT JOIN tags AS T
-                USING(tag_id)
-                WHERE A.article_id = ?
-                AND A.is_deleted = 0
-                GROUP BY A.article_id`
-    const values = [articleId]
+    const sql = `SELECT ARTICLEwithTAGS.*, TR.title AS trail_title
+                  FROM (
+                    SELECT A.*, GROUP_CONCAT(TA.tag_name SEPARATOR ', ') AS tag_names
+                    FROM articles AS A 
+                    LEFT JOIN article_tag_map AS TAM
+                      ON (A.article_id = TAM.article_id)
+                    LEFT JOIN tags AS TA
+                      ON (TAM.tag_id = TA.tag_id)
+                    WHERE A.article_id = ?
+                    AND A.is_deleted = 0
+                    GROUP BY A.article_id
+                  ) AS ARTICLEwithTAGS
+                  LEFT JOIN article_trail_map AS TRM
+                    USING(article_id)
+                  LEFT JOIN trails AS TR
+                    USING(trail_id)
+                  WHERE ARTICLEwithTAGS.article_id = ?
+                  AND ARTICLEwithTAGS.is_deleted = 0`
+    const values = [articleId, articleId]
     sendQuery(sql, values, cb)
   },
 
@@ -356,6 +365,26 @@ const articleModel = {
   updateMessage: (messageId, content, cb) => {
     const sql = `UPDATE messages SET content = ? WHERE message_id = ?`
     const values = [content, messageId]
+  },
+
+  findByTrailId: (trailId, cb) => {
+    let sql = `SELECT A.*
+               FROM articles AS A
+               LEFT JOIN article_trail_map AS M
+               USING(article_id)
+               WHERE M.trail_id = ?`
+    sendQuery(sql, trailId, cb)
+  },
+
+  createTrailAssociation: (articleId, trailId, cb) => {
+    const sql = `INSERT INTO article_trail_map(article_id, trail_id) VALUE (?, ?) `
+    const values = [articleId, trailId]
+    sendQuery(sql, values, cb)
+  },
+
+  cancelTrailAssociation: (articleId, trailId, cb) => {
+    const sql = `DELETE FROM article_trail_map WHERE article_id = ? AND trail_id = ? `
+    const values = [articleId, trailId]
     sendQuery(sql, values, cb)
   },
 
