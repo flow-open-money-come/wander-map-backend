@@ -146,7 +146,6 @@ const validators = {
     body('cover_picture_url').trim().notEmpty(),
     body('map_picture_url').trim().optional(),
     body('situation').trim().notEmpty(),
-    body('required_time').trim().notEmpty(),
     handleValidationResult,
   ],
 
