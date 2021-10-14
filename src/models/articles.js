@@ -106,18 +106,11 @@ const articleModel = {
 
     const articlePropertyNames = Object.keys(article)
     let sql = `INSERT INTO articles(${articlePropertyNames.join(', ')})
-                VALUES (${Array(articlePropertyNames.length)
-                  .fill('?')
-                  .join(', ')})`
+                VALUES (${Array(articlePropertyNames.length).fill('?').join(', ')})`
     let values = Object.values(article)
 
-    if (
-      (coordinate?.x || coordinate?.x === 0) &&
-      (coordinate?.y || coordinate?.y === 0)
-    ) {
-      sql = sql
-        .replace(')', ', coordinate)')
-        .replace('?)', '?, ST_PointFromText("POINT(? ?)"))')
+    if ((coordinate?.x || coordinate?.x === 0) && (coordinate?.y || coordinate?.y === 0)) {
+      sql = sql.replace(')', ', coordinate)').replace('?)', '?, ST_PointFromText("POINT(? ?)"))')
       values = values.concat([Number(coordinate.x), Number(coordinate.y)])
     }
     sql += ';'
@@ -125,13 +118,20 @@ const articleModel = {
   },
 
   findAll: (options, cb) => {
-    let sql = `SELECT A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
-                FROM articles AS A
-                LEFT JOIN article_tag_map AS M
-                USING(article_id)
-                LEFT JOIN tags AS T
-                USING(tag_id)
-                WHERE A.is_deleted = 0`
+    let sql = `SELECT ARTICLEwithTAGS.*, U.nickname, U.icon_url AS user_icon
+                  FROM (
+                    SELECT A.*, GROUP_CONCAT(TA.tag_name SEPARATOR ', ') AS tag_names
+                    FROM articles AS A 
+                    LEFT JOIN article_tag_map AS TAM
+                      ON (A.article_id = TAM.article_id)
+                    LEFT JOIN tags AS TA
+                      ON (TAM.tag_id = TA.tag_id)
+                    WHERE A.is_deleted = 0
+                    GROUP BY A.article_id
+                  ) AS ARTICLEwithTAGS
+              LEFT JOIN users AS U 
+                on ARTICLEwithTAGS.author_id = U.user_id
+              WHERE ARTICLEwithTAGS.is_deleted = 0`
     let values = []
 
     if (options.search) {
@@ -139,15 +139,11 @@ const articleModel = {
       values.push(`%${options?.search}%`)
     }
 
-    sql += ` GROUP BY A.article_id`
+    sql += ` GROUP BY ARTICLEwithTAGS.article_id`
 
     const tagSuffix = getTagSearchingSuffix(options.tag)
     const paginationSuffix = getArticlePaginationSuffix(options)
-    const query = combineTagAndPaginationSuffix(
-      { sql, values },
-      tagSuffix,
-      paginationSuffix
-    )
+    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
 
     sql = query.sql + ';'
     values = query.values
@@ -174,11 +170,7 @@ const articleModel = {
 
     const tagSuffix = getTagSearchingSuffix(options.tag)
     const paginationSuffix = getArticlePaginationSuffix(options)
-    const query = combineTagAndPaginationSuffix(
-      { sql, values },
-      tagSuffix,
-      paginationSuffix
-    )
+    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
 
     sql = query.sql + ';'
     values = query.values
@@ -218,7 +210,10 @@ const articleModel = {
     values = Object.values(article).filter((data) => data !== article.coordinate)
     if (values.length > 0) sql += columnNames.join(' = ?, ') + ` = ? `
 
-    if ((article.coordinate?.x || article.coordinate?.x === 0) && (article.coordinate?.y || article.coordinate?.y === 0)) {
+    if (
+      (article.coordinate?.x || article.coordinate?.x === 0) &&
+      (article.coordinate?.y || article.coordinate?.y === 0)
+    ) {
       if (values === 0) sql += ','
       sql += ` coordinate = ST_PointFromText("POINT(? ?)")`
       values = values.concat([Number(article.coordinate.x), Number(article.coordinate.y)])
@@ -280,11 +275,7 @@ const articleModel = {
 
     const tagSuffix = getTagSearchingSuffix(options.tag)
     const paginationSuffix = getArticlePaginationSuffix(options)
-    const query = combineTagAndPaginationSuffix(
-      { sql, values },
-      tagSuffix,
-      paginationSuffix
-    )
+    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
 
     sql = query.sql + ';'
     values = query.values
@@ -312,11 +303,7 @@ const articleModel = {
 
     const tagSuffix = getTagSearchingSuffix(options.tag)
     const paginationSuffix = getArticlePaginationSuffix(options)
-    const query = combineTagAndPaginationSuffix(
-      { sql, values },
-      tagSuffix,
-      paginationSuffix
-    )
+    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
 
     sql = query.sql + ';'
     values = query.values
@@ -398,13 +385,8 @@ const articleModel = {
       if (tagIdArray.length === 0) return cb(null, [])
 
       const sql = `INSERT IGNORE INTO article_tag_map (article_id, tag_id)
-                    VALUES ${Array(tagIdArray.length)
-                      .fill('(?, ?)')
-                      .join(', ')};`
-      const values = tagIdArray.reduce(
-        (accu, curr) => accu.concat([articleId, curr.tag_id]),
-        []
-      )
+                    VALUES ${Array(tagIdArray.length).fill('(?, ?)').join(', ')};`
+      const values = tagIdArray.reduce((accu, curr) => accu.concat([articleId, curr.tag_id]), [])
 
       sendQuery(sql, values, cb)
     })
@@ -418,12 +400,45 @@ const articleModel = {
                     WHERE article_id = ?`
       const values = [articleId].concat(tagIdArray.map((obj) => obj.tag_id))
 
-      if (tagIdArray.length > 0) sql += ` AND tag_id NOT IN (${Array(tagIdArray.length).fill('?').join(', ')})`
+      if (tagIdArray.length > 0)
+        sql += ` AND tag_id NOT IN (${Array(tagIdArray.length).fill('?').join(', ')})`
 
       sql += ';'
       sendQuery(sql, values, cb)
     })
   },
+
+  findAllDeleted: (options, cb) => {
+    let sql = `SELECT A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
+                FROM articles AS A
+                LEFT JOIN article_tag_map AS M
+                USING(article_id)
+                LEFT JOIN tags AS T
+                USING(tag_id)
+                WHERE A.is_deleted = 1`
+    let values = []
+
+    if (options.search) {
+      sql += ` AND title LIKE ?`
+      values.push(`%${options?.search}%`)
+    }
+
+    sql += ` GROUP BY A.article_id`
+
+    const tagSuffix = getTagSearchingSuffix(options.tag)
+    const paginationSuffix = getArticlePaginationSuffix(options)
+    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
+
+    sql = query.sql + ';'
+    values = query.values
+    sendQuery(sql, values, cb)
+  },
+
+  recoverDeleted: (articleId, cb) => {
+    const sql = `UPDATE articles SET is_deleted = ? WHERE article_id = ?`
+    const values = [0, articleId]
+    sendQuery(sql, values, cb)
+  }
 }
 
 module.exports = articleModel

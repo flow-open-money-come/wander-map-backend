@@ -9,10 +9,14 @@ const {
 
 trailRouter.get('/', paginationAndSearchValidator, trailsController.getAll)
 trailRouter.get('/hot/:Amount', trailsController.getHotTrails)
-trailRouter.get('/:id', paramValidator, trailsController.getOne)
+
+trailRouter.get('/deleted', paginationAndSearchValidator, trailsController.getDeletedTrails)
+trailRouter.patch('/deleted/:trailId/', paramValidator, trailsController.recoverDeletedTrail)
+
+trailRouter.get('/:trailId', paramValidator, trailsController.getOne)
 trailRouter.post('/', postTrailsValidator, trailsController.add)
-trailRouter.patch('/:id', paramValidator, postTrailsValidator, trailsController.update)
-trailRouter.delete('/:id', paramValidator, trailsController.delete)
+trailRouter.patch('/:trailId', paramValidator, postTrailsValidator, trailsController.update)
+trailRouter.delete('/:trailId', paramValidator, trailsController.delete)
 
 trailRouter.get('/:trailId/articles', paramValidator, trailsController.getArticles)
 
