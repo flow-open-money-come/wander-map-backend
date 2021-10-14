@@ -37,6 +37,8 @@ module.exports = {
       expires: expiredAt,
       signed: process.env.COOKIE_SECRET,
       httpOnly: true,
+      sameSite: 'none',
+      secure: true,
     }
   },
 }
