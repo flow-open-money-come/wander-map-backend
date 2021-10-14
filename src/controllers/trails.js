@@ -35,12 +35,12 @@ const trailsController = {
   },
 
   getOne: async (req, res, next) => {
-    const { id } = req.params
+    const { trailId } = req.params
     try {
-      const results = await trailsModel.findById(id)
+      const results = await trailsModel.findById(trailId)
       res.json({
         success: true,
-        message: `get trail-${id} info`,
+        message: `get trail-${trailId} info`,
         data: results
       })
     } catch (err) {
@@ -77,13 +77,13 @@ const trailsController = {
   },
 
   update: async (req, res, next) => {
-    const { id } = req.params
+    const { trailId } = req.params
     const content = req.body
     try {
-      const results = await trailsModel.update(id, content)
+      const results = await trailsModel.update(trailId, content)
       res.json({
         success: true,
-        message: `update trail-${id}`,
+        message: `update trail-${trailId}`,
         data: results
       })
     } catch (err) {
@@ -92,12 +92,12 @@ const trailsController = {
   },
 
   delete: async (req, res, next) => {
-    const { id } = req.params
+    const { trailId } = req.params
     try {
-      const results = await trailsModel.delete(id)
+      const results = await trailsModel.delete(trailId)
       res.json({
         success: true,
-        message: `trail-${id} deleted`,
+        message: `trail-${trailId} deleted`,
         data: results
       })
     } catch (err) {
@@ -174,7 +174,48 @@ const trailsController = {
         data: results
       })
     })
+  },
 
+  getDeletedTrails: async (req, res, next) => {
+    const { limit, offset, cursor, search } = req.query
+
+    const options = {
+      limit,
+      offset,
+      cursor,
+      search
+    }
+
+    Object.keys(options).forEach((value, index) => {
+      if (!options[value]) {
+        delete options[value]
+      }
+    })
+
+    try {
+      const results = await trailsModel.findAllDeleted(options)
+      res.json({
+        success: true,
+        message: `get all deleted trails`,
+        data: results
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  recoverDeletedTrail: async (req, res, next) => {
+    const { trailId } = req.params
+    try {
+      const results = await trailsModel.recoverDeleted(trailId)
+      res.json({
+        success: true,
+        message: `recover trail-${trailId}`,
+        data: results
+      })
+    } catch (err) {
+      next(err)
+    }
   }
 }
 

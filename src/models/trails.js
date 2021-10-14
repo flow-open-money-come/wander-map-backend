@@ -93,7 +93,7 @@ const trailModel = {
         Number(trailInfo.coordinateY),
         trailInfo.cover_picture_url,
         trailInfo.map_picture_url,
-        trailInfo.required_time,
+        trailInfo.required_time
       ])
       return rows
     } catch (err) {
@@ -123,7 +123,7 @@ const trailModel = {
         trailInfo.map_picture_url,
         trailInfo.required_time,
         trailInfo.is_deleted,
-        id,
+        id
       ])
       return rows
     } catch (err) {
@@ -277,6 +277,33 @@ const trailModel = {
       throw err
     }
   },
+
+  findAllDeleted: async (options) => {
+    let sql = `SELECT * FROM trails WHERE is_deleted = 1`
+    let values = []
+
+    const suffix = getPaginationAndFilterSuffix(options)
+    sql += suffix.sql + ';'
+    values = values.concat(suffix.values)
+    logger.debug(sql)
+    try {
+      const [rows, fields] = await pool.query(sql, values)
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
+  recoverDeleted: async (id) => {
+    const sql = `UPDATE trails SET is_deleted = ? WHERE trail_id = ?`
+    logger.debug(sql)
+    try {
+      const [rows, fields] = await pool.query(sql, [0, id])
+      return rows
+    } catch (err) {
+      throw err
+    }
+  }
 }
 
 module.exports = trailModel
