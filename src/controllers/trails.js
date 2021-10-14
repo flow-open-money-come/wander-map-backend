@@ -13,7 +13,7 @@ const trailsController = {
       limit,
       offset,
       cursor,
-      search
+      search,
     }
 
     Object.keys(options).forEach((value, index) => {
@@ -27,7 +27,7 @@ const trailsController = {
       res.json({
         success: true,
         message: `get ${JSON.stringify(options)} trails`,
-        data: results
+        data: results,
       })
     } catch (err) {
       next(err)
@@ -41,7 +41,7 @@ const trailsController = {
       res.json({
         success: true,
         message: `get trail-${id} info`,
-        data: results
+        data: results,
       })
     } catch (err) {
       next(err)
@@ -55,7 +55,7 @@ const trailsController = {
       res.json({
         success: true,
         message: `get top-${Amount} hot trails`,
-        data: results
+        data: results,
       })
     } catch (err) {
       next(err)
@@ -69,7 +69,7 @@ const trailsController = {
       res.json({
         success: true,
         message: `add trail-${results.insertId}`,
-        data: results
+        data: results,
       })
     } catch (err) {
       next(err)
@@ -84,7 +84,7 @@ const trailsController = {
       res.json({
         success: true,
         message: `update trail-${id}`,
-        data: results
+        data: results,
       })
     } catch (err) {
       next(err)
@@ -98,7 +98,7 @@ const trailsController = {
       res.json({
         success: true,
         message: `trail-${id} deleted`,
-        data: results
+        data: results,
       })
     } catch (err) {
       next(err)
@@ -112,7 +112,7 @@ const trailsController = {
       res.json({
         success: true,
         message: `get trail-${trailId} comments`,
-        data: results
+        data: results,
       })
     } catch (err) {
       next(err)
@@ -127,7 +127,7 @@ const trailsController = {
       res.json({
         success: true,
         message: `leave trail-${trailId} comment: ${comment.content}`,
-        data: results
+        data: results,
       })
     } catch (err) {
       next(err)
@@ -142,7 +142,7 @@ const trailsController = {
       res.json({
         success: true,
         message: `update comment to: ${comment.content}`,
-        data: results
+        data: results,
       })
     } catch (err) {
       next(err)
@@ -156,7 +156,7 @@ const trailsController = {
       res.json({
         success: true,
         message: `delete comment-${commentId}`,
-        data: results
+        data: results,
       })
     } catch (err) {
       next(err)
@@ -165,17 +165,29 @@ const trailsController = {
 
   getArticles: async (req, res, next) => {
     const { trailId } = req.params
+    const { limit, offset, cursor } = req.query
 
-    articleModel.findByTrailId(trailId, (err, results) => {
+    const options = {
+      limit,
+      offset,
+      cursor,
+    }
+
+    Object.keys(options).forEach((value, index) => {
+      if (!options[value]) {
+        delete options[value]
+      }
+    })
+
+    articleModel.findByTrailId(trailId, options, (err, results) => {
       if (err) return next(err)
       res.json({
         success: true,
         message: `articles of trail-${trailId}`,
-        data: results
+        data: results,
       })
     })
-
-  }
+  },
 }
 
 module.exports = trailsController

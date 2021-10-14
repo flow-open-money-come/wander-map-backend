@@ -12,9 +12,13 @@ const { PATH_ERROR } = require('./constants/errors')
 
 const app = express()
 const PORT = process.env.APP_SERVER_PORT || 8888
+const corsOptions = {
+  credentials: true,
+  origin: ['http://wandermap.tw', 'http://localhost:3000'],
+}
 
 app.disable('x-powered-by')
-app.use(cors())
+app.use(cors(corsOptions))
 app.use(cookieParser(process.env.COOKIE_SECRET))
 app.use(logRequest)
 app.use(express.json())
