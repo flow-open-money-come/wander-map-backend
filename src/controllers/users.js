@@ -203,9 +203,6 @@ const userController = {
 
   getUser: async (req, res, next) => {
     const { userId } = req.params
-    const { tokenPayload } = res.locals
-
-    if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
 
     try {
       const options = {
@@ -307,7 +304,7 @@ const userController = {
   },
 
   likeArticle: async (req, res, next) => {
-    const { articleId } = req.body
+    const { article_id: articleId } = req.body
     const { userId } = req.params
     const { tokenPayload } = res.locals
 
@@ -393,7 +390,7 @@ const userController = {
 
   collectTrail: async (req, res, next) => {
     const { userId } = req.params
-    const { trailId } = req.body
+    const { trail_id: trailId } = req.body
     const { tokenPayload } = res.locals
 
     if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)

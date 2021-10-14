@@ -188,14 +188,14 @@ const articleModel = {
     if (values.length > 0) sql += columnNames.join(' = ?, ') + ` = ? `
 
     if ((article.coordinate?.x || article.coordinate?.x === 0) && (article.coordinate?.y || article.coordinate?.y === 0)) {
-      if (values === 0) sql += ','
+      if (values !== 0) sql += ','
       sql += ` coordinate = ST_PointFromText("POINT(? ?)")`
       values = values.concat([Number(article.coordinate.x), Number(article.coordinate.y)])
     } else {
       if (columnNames.length === 0) return cb(null, 'nothing to update')
     }
 
-    sql += `WHERE article_id = ?;`
+    sql += ` WHERE article_id = ?;`
     values.push(articleId)
 
     sendQuery(sql, values, cb)
@@ -290,7 +290,7 @@ const articleModel = {
                 SELECT * FROM (SELECT ?, ?) as tmp
                 WHERE NOT EXISTS (
                   SELECT user_id FROM likes
-                  WHERE user_id = ? AND article_id = ? AND is_deleted = 0);`
+                  WHERE user_id = ? AND article_id = ?);`
     const values = [userId, articleId, userId, articleId]
     sendQuery(sql, values, cb)
   },

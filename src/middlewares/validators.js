@@ -78,11 +78,11 @@ const validators = {
       .customSanitizer((lt) => {
         return lt.map((ele) => parseFloat(ele)).filter((ele) => ele)
       }),
-    query('difficult', 'difficult must be integer between 1 and 5')
+    query('difficult', 'difficult must be integer between 1 and 5 or string in ["新手", "入門", "進階", "挑戰", "困難"]')
       .optional()
       .toArray()
       .customSanitizer((difficult) => {
-        return difficult.map((ele) => parseInt(ele, 10)).filter((ele) => ele && ele >= 1 && ele <= 5)
+        return difficult.filter((ele) => ['新手', '入門', '進階', '挑戰', '困難', '1', '2', '3', '4', '5'].includes(ele))
       }),
     handleValidationResult,
   ],
@@ -123,9 +123,9 @@ const validators = {
   ],
 
   postTodoValidator: [body('content', 'content is required').exists({ checkNull: true }).trim(), handleValidationResult],
-  editTodoValidator: [body('isDone').optional().trim().toInt(), handleValidationResult],
-  likedArticleValidator: [body('articleId', 'articleId must be integer').trim().toInt().isInt({ min: 1 }), handleValidationResult],
-  collectedTrailsValidator: [body('trailId', 'trailId must be integer').trim().toInt().isInt({ min: 1 }), handleValidationResult],
+  editTodoValidator: [body('is_done').optional().trim().toInt(), handleValidationResult],
+  likedArticleValidator: [body('article_id', 'article_id must be integer').trim().toInt().isInt({ min: 1 }), handleValidationResult],
+  collectedTrailsValidator: [body('trail_id', 'trail_id must be integer').trim().toInt().isInt({ min: 1 }), handleValidationResult],
 
   postTrailsValidator: [
     body('author_id').trim().notEmpty(),
@@ -136,7 +136,12 @@ const validators = {
     body('coordinateY').trim().notEmpty(),
     body('altitude').trim().notEmpty().isInt(),
     body('length').trim().notEmpty().isFloat({ min: 0 }),
-    body('difficulty').trim().notEmpty().isInt({ min: 1, max: 5 }),
+    body('difficulty')
+      .trim()
+      .notEmpty()
+      .custom((difficulty) => {
+        return ['新手', '入門', '進階', '挑戰', '困難', '1', '2', '3', '4', '5'].includes(difficulty)
+      }),
     body('season').trim().notEmpty(),
     body('cover_picture_url').trim().notEmpty(),
     body('map_picture_url').trim().optional(),
