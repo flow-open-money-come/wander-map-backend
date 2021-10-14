@@ -123,7 +123,7 @@ userRouter.get('/refresh', userController.refresh)
  */
 userRouter.get('/', auth, paginationAndSearchValidator, userController.getUsers)
 
-userRouter.get('/:userId', auth, paramValidator, userController.getUser)
+userRouter.get('/:userId', paramValidator, userController.getUser)
 userRouter.patch('/:userId', auth, paramValidator, editUserValidator, userController.editUser)
 
 userRouter.get('/:userId/todos', auth, paramValidator, todoController.getTodos)

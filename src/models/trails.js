@@ -95,6 +95,7 @@ const trailModel = {
         trailInfo.map_picture_url,
         trailInfo.required_time
       ])
+      console.log(`SQL: ${sql},  ${JSON.stringify(trailInfo)}`)
       return rows
     } catch (err) {
       throw err

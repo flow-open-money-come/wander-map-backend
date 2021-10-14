@@ -69,15 +69,7 @@ const userController = {
       const users = await userModel.find({ where: { email } })
       if (users.length === 0) return res.status(401).json(LOGIN_ERROR)
 
-      const {
-        user_id,
-        nickname,
-        password: hash,
-        icon_url,
-        role,
-        updated_at,
-        created_at,
-      } = users[0]
+      const { user_id, nickname, password: hash, icon_url, role, updated_at, created_at } = users[0]
       const isValid = await bcrypt.compare(password, hash)
 
       if (!isValid) return res.status(401).json(LOGIN_ERROR)
@@ -176,8 +168,7 @@ const userController = {
 
   getUsers: async (req, res, next) => {
     const { tokenPayload } = res.locals
-    if (getPermissionLevel(tokenPayload) < 3)
-      return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload) < 3) return res.status(403).json(FORBIDDEN_ACTION)
 
     const { limit, offset, cursor } = req.query
     const options = {
@@ -185,8 +176,7 @@ const userController = {
       offset: offset || 0,
       cursor: cursor || 0,
     }
-    options.columns =
-      'user_id, nickname, email, icon_url, role, updated_at, created_at'
+    options.columns = 'user_id, nickname, email, icon_url, role, updated_at, created_at'
 
     try {
       const users = await userModel.findAll(options)
@@ -213,16 +203,11 @@ const userController = {
 
   getUser: async (req, res, next) => {
     const { userId } = req.params
-    const { tokenPayload } = res.locals
-
-    if (getPermissionLevel(tokenPayload, userId) < 2)
-      return res.status(403).json(FORBIDDEN_ACTION)
 
     try {
       const options = {
         where: { user_id: userId },
-        columns:
-          'user_id, nickname, email, icon_url, role, updated_at, created_at',
+        columns: 'user_id, nickname, email, icon_url, role, updated_at, created_at',
       }
       const user = await userModel.find(options)
       res.json({
@@ -248,8 +233,7 @@ const userController = {
       const columns = { nickname, icon_url: iconUrl, password }
       if (permissionLevel > 2 && role) {
         const validValues = ['admin', 'member', 'suspended', 1, 2, 3]
-        if (!validValues.includes(role))
-          return res.status(400).json(INVALID_INPUT)
+        if (!validValues.includes(role)) return res.status(400).json(INVALID_INPUT)
         columns.role = role
       }
       for (let column in columns) {
@@ -320,12 +304,11 @@ const userController = {
   },
 
   likeArticle: async (req, res, next) => {
-    const { articleId } = req.body
+    const { article_id: articleId } = req.body
     const { userId } = req.params
     const { tokenPayload } = res.locals
 
-    if (getPermissionLevel(tokenPayload, userId) < 2)
-      return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
 
     articleModel.createLikeAssociation(userId, articleId, (err, results) => {
       if (err) return next(err)
@@ -341,8 +324,7 @@ const userController = {
     const { userId, articleId } = req.params
     const { tokenPayload } = res.locals
 
-    if (getPermissionLevel(tokenPayload, userId) < 2)
-      return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
 
     articleModel.deleteLikeAssociation(userId, articleId, (err, results) => {
       if (err) return next(err)
@@ -356,8 +338,7 @@ const userController = {
 
   getTrails: async (req, res, next) => {
     const { userId } = req.params
-    const { location, altitude, length, difficult, limit, offset, cursor } =
-      req.query
+    const { location, altitude, length, difficult, limit, offset, cursor } = req.query
 
     const options = {
       location,
@@ -383,8 +364,7 @@ const userController = {
 
   getCollectedTrails: async (req, res, next) => {
     const { userId } = req.params
-    const { location, altitude, length, difficult, limit, offset, cursor } =
-      req.query
+    const { location, altitude, length, difficult, limit, offset, cursor } = req.query
 
     const options = {
       location,
@@ -410,11 +390,10 @@ const userController = {
 
   collectTrail: async (req, res, next) => {
     const { userId } = req.params
-    const { trailId } = req.body
+    const { trail_id: trailId } = req.body
     const { tokenPayload } = res.locals
 
-    if (getPermissionLevel(tokenPayload, userId) < 2)
-      return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
 
     try {
       const result = await trailModel.createCollectAssociation(userId, trailId)
@@ -432,8 +411,7 @@ const userController = {
     const { userId, trailId } = req.params
     const { tokenPayload } = res.locals
 
-    if (getPermissionLevel(tokenPayload, userId) < 2)
-      return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, userId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
 
     try {
       const result = await trailModel.deleteCollectAssociation(userId, trailId)
