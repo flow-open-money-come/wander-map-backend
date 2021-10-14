@@ -40,7 +40,7 @@ const articleController = {
       end_time,
       time_spent,
       cover_picture_url,
-      gpx_url,
+      gpx_url
     } = req.body
     const { tokenPayload } = res.locals
     const authorId = tokenPayload.user_id
@@ -56,7 +56,7 @@ const articleController = {
       end_time,
       time_spent,
       cover_picture_url,
-      gpx_url,
+      gpx_url
     }
 
     for (column in article) {
@@ -69,26 +69,21 @@ const articleController = {
     articleModel.add(article, (err, articleResult) => {
       if (err) return next(err)
 
-      articleModel.createTagAssociation(
-        articleResult.insertId,
-        tags,
-        (err, result) => {
-          if (err) return next(err)
+      articleModel.createTagAssociation(articleResult.insertId, tags, (err, result) => {
+        if (err) return next(err)
 
-          userModel
-          res.json({
-            success: true,
-            message: 'OK',
-            data: result,
-          })
-        }
-      )
+        userModel
+        res.json({
+          success: true,
+          message: 'OK',
+          data: result
+        })
+      })
     })
   },
 
   getArticles: (req, res, next) => {
-    const { location, altitude, length, limit, offset, cursor, search, tag } =
-      req.query
+    const { location, altitude, length, limit, offset, cursor, search, tag } = req.query
 
     const options = {
       location,
@@ -98,7 +93,7 @@ const articleController = {
       offset,
       cursor,
       search,
-      tag,
+      tag
     }
 
     Object.keys(options).forEach((value, index) => {
@@ -112,7 +107,7 @@ const articleController = {
       res.json({
         success: true,
         message: 'OK',
-        data: results,
+        data: results
       })
     })
   },
@@ -123,14 +118,14 @@ const articleController = {
       limit: limit || 20,
       offset,
       cursor,
-      tag,
+      tag
     }
     articleModel.findByLikes(options, (err, results) => {
       if (err) return next(err)
       res.json({
         success: true,
         message: 'OK',
-        data: results,
+        data: results
       })
     })
   },
@@ -142,7 +137,7 @@ const articleController = {
       res.json({
         success: true,
         message: `get article-id ${articleId}`,
-        data: results,
+        data: results
       })
     })
   },
@@ -163,7 +158,7 @@ const articleController = {
       time_spent,
       cover_picture_url,
       gpx_url,
-      is_deleted,
+      is_deleted
     } = req.body
     const article = {
       title,
@@ -177,7 +172,7 @@ const articleController = {
       time_spent,
       cover_picture_url,
       gpx_url,
-      is_deleted,
+      is_deleted
     }
 
     for (column in article) {
@@ -199,26 +194,22 @@ const articleController = {
               res.json({
                 success: true,
                 message: 'OK',
-                data: results,
+                data: results
               })
             })
           }
-          articleModel.deleteTagAssociationNotInList(
-            articleId,
-            tags,
-            (err, result) => {
-              if (err) return next(err)
+          articleModel.deleteTagAssociationNotInList(articleId, tags, (err, result) => {
+            if (err) return next(err)
 
-              articleModel.findById(articleId, (err, results) => {
-                if (err) return next(err)
-                res.json({
-                  success: true,
-                  message: 'OK',
-                  data: results,
-                })
+            articleModel.findById(articleId, (err, results) => {
+              if (err) return next(err)
+              res.json({
+                success: true,
+                message: 'OK',
+                data: results
               })
-            }
-          )
+            })
+          })
         })
       })
     })
@@ -235,7 +226,7 @@ const articleController = {
         res.json({
           success: true,
           message: 'OK',
-          data: results,
+          data: results
         })
       })
     })
@@ -247,14 +238,14 @@ const articleController = {
     const options = {
       limit: limit || 5,
       cursor,
-      offset,
+      offset
     }
     articleModel.findMessagesById(articleId, options, (err, results) => {
       if (err) return next(err)
       res.json({
         success: true,
         message: 'OK',
-        data: results,
+        data: results
       })
     })
   },
@@ -275,7 +266,7 @@ const articleController = {
       res.json({
         success: true,
         message: 'OK',
-        data: results,
+        data: results
       })
     })
   },
@@ -292,7 +283,7 @@ const articleController = {
         res.json({
           success: true,
           message: 'OK',
-          data: results,
+          data: results
         })
       })
     })
@@ -311,7 +302,7 @@ const articleController = {
         res.json({
           success: true,
           message: 'OK',
-          data: results,
+          data: results
         })
       })
     })
@@ -326,7 +317,7 @@ const articleController = {
       res.json({
         success: true,
         message: `article-${articleId} linked to trail-${trail_id}`,
-        data: results,
+        data: results
       })
     })
   },
@@ -339,10 +330,49 @@ const articleController = {
       res.json({
         success: true,
         message: `article-${articleId} unlinked to trail-${trailId}`,
-        data: results,
+        data: results
       })
     })
   },
+
+  getDeletedArticles: (req, res, next) => {
+    const { limit, offset, cursor, search } = req.query
+
+    const options = {
+      limit: limit || 20,
+      offset,
+      cursor,
+      search
+    }
+
+    Object.keys(options).forEach((value, index) => {
+      if (!options[index]) {
+        delete options[index]
+      }
+    })
+
+    articleModel.findAllDeleted(options, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: `get all deleted articles`,
+        data: results
+      })
+    })
+  },
+
+  recoverDeletedArticle: (req, res, next) => {
+    const { articleId } = req.params
+
+    articleModel.recoverDeleted(articleId, (err, results) => {
+      if (err) return next(err)
+      res.json({
+        success: true,
+        message: `recover article-${articleId}`,
+        data: results
+      })
+    })
+  }
 }
 
 module.exports = articleController
