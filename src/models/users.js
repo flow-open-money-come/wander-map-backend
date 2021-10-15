@@ -108,6 +108,30 @@ const userModel = {
       throw err
     }
   },
+
+  suspendUser: async (userId) => {
+    const values = []
+    let sql = `UPDATE final_project_dev.users SET role = 'suspended' WHERE user_id = ?`
+    logger.debug(sql)
+    try {
+      const [rows, fields] = await pool.query(sql, userId)
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
+  restoreUser: async (userId) => {
+    const values = []
+    let sql = `UPDATE final_project_dev.users SET role = 'member' WHERE user_id = ?`
+    logger.debug(sql)
+    try {
+      const [rows, fields] = await pool.query(sql, userId)
+      return rows
+    } catch (err) {
+      throw err
+    }
+  }
 }
 
 module.exports = userModel

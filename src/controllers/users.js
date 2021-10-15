@@ -25,7 +25,7 @@ const userController = {
       const result = await userModel.create({
         nickname,
         email,
-        hash,
+        hash
       })
 
       users = await userModel.find({ where: { user_id: result.insertId } })
@@ -38,7 +38,7 @@ const userController = {
           icon_url,
           role,
           updated_at,
-          created_at,
+          created_at
         },
         tokenSecret,
         { expiresIn: process.env.JWT_AGE }
@@ -55,7 +55,7 @@ const userController = {
       res.status(201).cookie('refreshToken', refreshToken, cookieOptions).json({
         success: true,
         message: 'registration success',
-        data: { token },
+        data: { token }
       })
     } catch (err) {
       next(err)
@@ -81,7 +81,7 @@ const userController = {
           icon_url,
           role,
           updated_at,
-          created_at,
+          created_at
         },
         tokenSecret,
         { expiresIn: process.env.JWT_AGE }
@@ -99,7 +99,7 @@ const userController = {
       res.cookie('refreshToken', refreshToken, cookieOptions).json({
         success: true,
         message: 'logged in',
-        data: { token },
+        data: { token }
       })
     } catch (err) {
       next(err)
@@ -115,7 +115,7 @@ const userController = {
       res.clearCookie('refreshToken', cookieOptions).json({
         success: true,
         message: 'logged out',
-        data: {},
+        data: {}
       })
     } catch (err) {
       next(err)
@@ -126,7 +126,8 @@ const userController = {
     const { refreshToken } = req.signedCookies
     try {
       const sessionInfo = (await refreshTokenModel.findByToken(refreshToken))[0]
-      if (!sessionInfo || sessionInfo.expiredAt < new Date(Date.now())) return res.status(401).json(INVALID_REFRESH_TOKEN)
+      if (!sessionInfo || sessionInfo.expiredAt < new Date(Date.now()))
+        return res.status(401).json(INVALID_REFRESH_TOKEN)
 
       const { user_id: userId } = sessionInfo
       const expiredAt = getCookieExpireTime()
@@ -150,7 +151,7 @@ const userController = {
           icon_url,
           role,
           updated_at,
-          created_at,
+          created_at
         },
         tokenSecret,
         { expiresIn: process.env.JWT_AGE }
@@ -159,7 +160,7 @@ const userController = {
       res.cookie('refreshToken', newRefreshToken, cookieOptions).json({
         success: true,
         message: 'jwt access token',
-        data: { token },
+        data: { token }
       })
     } catch (err) {
       next(err)
@@ -174,7 +175,7 @@ const userController = {
     const options = {
       limit: limit || 20,
       offset: offset || 0,
-      cursor: cursor || 0,
+      cursor: cursor || 0
     }
     options.columns = 'user_id, nickname, email, icon_url, role, updated_at, created_at'
 
@@ -184,8 +185,8 @@ const userController = {
         success: true,
         message: 'user data',
         data: {
-          users,
-        },
+          users
+        }
       })
     } catch (err) {
       if (err.errno === 1054) {
@@ -194,7 +195,7 @@ const userController = {
         return res.status(400).json({
           success: false,
           message: 'Unknown column',
-          data: {},
+          data: {}
         })
       }
       next(err)
@@ -207,13 +208,13 @@ const userController = {
     try {
       const options = {
         where: { user_id: userId },
-        columns: 'user_id, nickname, email, icon_url, role, updated_at, created_at',
+        columns: 'user_id, nickname, email, icon_url, role, updated_at, created_at'
       }
       const user = await userModel.find(options)
       res.json({
         success: true,
         message: 'get user data',
-        data: user[0],
+        data: user[0]
       })
     } catch (err) {
       next(err)
@@ -244,7 +245,7 @@ const userController = {
       res.json({
         success: true,
         message: `user_id: ${userId} is updated`,
-        data: {},
+        data: {}
       })
     } catch (err) {
       next(err)
@@ -258,7 +259,7 @@ const userController = {
       limit: limit || 20,
       offset,
       cursor,
-      tag,
+      tag
     }
 
     Object.keys(options).forEach((value, index) => {
@@ -272,7 +273,7 @@ const userController = {
       res.json({
         success: true,
         message: `articles wrote by user ${userId}`,
-        data: { articles: results },
+        data: { articles: results }
       })
     })
   },
@@ -284,7 +285,7 @@ const userController = {
       limit: limit || 20,
       offset,
       cursor,
-      tag,
+      tag
     }
 
     Object.keys(options).forEach((value, index) => {
@@ -298,7 +299,7 @@ const userController = {
       res.json({
         success: true,
         message: `articles liked by user ${userId}`,
-        data: { articles: results },
+        data: { articles: results }
       })
     })
   },
@@ -315,7 +316,7 @@ const userController = {
       res.json({
         success: true,
         message: 'like association was created',
-        data: { results },
+        data: { results }
       })
     })
   },
@@ -331,7 +332,7 @@ const userController = {
       res.json({
         success: true,
         message: 'like association was deleted',
-        data: { results },
+        data: { results }
       })
     })
   },
@@ -347,7 +348,7 @@ const userController = {
       difficult,
       limit,
       offset,
-      cursor,
+      cursor
     }
 
     try {
@@ -355,7 +356,7 @@ const userController = {
       res.json({
         success: true,
         message: `trails wrote by user ${userId}`,
-        data: { trails },
+        data: { trails }
       })
     } catch (err) {
       next(err)
@@ -373,7 +374,7 @@ const userController = {
       difficult,
       limit,
       offset,
-      cursor,
+      cursor
     }
 
     try {
@@ -381,7 +382,7 @@ const userController = {
       res.json({
         success: true,
         message: `trails collected by user ${userId}`,
-        data: { trails },
+        data: { trails }
       })
     } catch (err) {
       next(err)
@@ -400,7 +401,7 @@ const userController = {
       res.json({
         success: true,
         message: 'collect association was created',
-        data: { result },
+        data: { result }
       })
     } catch (err) {
       next(err)
@@ -418,12 +419,46 @@ const userController = {
       res.json({
         success: true,
         message: 'collect association was deleted',
-        data: { result },
+        data: { result }
       })
     } catch (err) {
       next(err)
     }
   },
+
+  suspend: async (req, res, next) => {
+    const { userId } = req.params
+    const { tokenPayload } = res.locals
+    if (getPermissionLevel(tokenPayload) < 3) return res.status(403).json(FORBIDDEN_ACTION)
+
+    try {
+      const results = await userModel.suspendUser(userId)
+      res.json({
+        success: true,
+        message: `user_id: ${userId} is suspended`,
+        data: results
+      })
+    } catch (err) {
+      next(err)
+    }
+  },
+
+  restore: async (req, res, next) => {
+    const { userId } = req.params
+    const { tokenPayload } = res.locals
+    if (getPermissionLevel(tokenPayload) < 3) return res.status(403).json(FORBIDDEN_ACTION)
+
+    try {
+      const results = await userModel.restoreUser(userId)
+      res.json({
+        success: true,
+        message: `user_id: ${userId} is restored`,
+        data: results
+      })
+    } catch (err) {
+      next(err)
+    }
+  }
 }
 
 module.exports = userController

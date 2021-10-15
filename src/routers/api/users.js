@@ -141,5 +141,8 @@ userRouter.get('/:userId/collected-trails', paramValidator, paginationAndSearchV
 userRouter.post('/:userId/collected-trails', auth, paramValidator, collectedTrailsValidator, userController.collectTrail)
 userRouter.delete('/:userId/collected-trails/:trailId', auth, paramValidator, userController.cancelCollectTrail)
 
+userRouter.patch('/:userId/suspend', auth, paramValidator, userController.suspend)
+userRouter.patch('/:userId/restore', auth, paramValidator, userController.restore)
+
 userRouter.all('*', (req, res) => res.status(404).json(PATH_ERROR))
 module.exports = userRouter
