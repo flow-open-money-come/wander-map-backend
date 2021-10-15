@@ -108,6 +108,17 @@ const userModel = {
       throw err
     }
   },
+
+  getUserCount: async () => {
+    const sql = 'SELECT COUNT(*) AS count FROM users;'
+    logger.debug(sql)
+    try {
+      const [rows, fields] = await pool.query(sql)
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
 }
 
 module.exports = userModel
