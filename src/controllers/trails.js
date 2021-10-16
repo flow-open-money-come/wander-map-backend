@@ -24,10 +24,10 @@ const trailsController = {
 
     try {
       const results = await trailsModel.findAll(options)
-      res.json({
+      res.set('x-total-count', results.count).json({
         success: true,
         message: `get ${JSON.stringify(options)} trails`,
-        data: results,
+        data: results.result,
       })
     } catch (err) {
       next(err)
@@ -41,7 +41,7 @@ const trailsController = {
       res.json({
         success: true,
         message: `get trail-${trailId} info`,
-        data: results
+        data: results,
       })
     } catch (err) {
       next(err)
@@ -84,7 +84,7 @@ const trailsController = {
       res.json({
         success: true,
         message: `update trail-${trailId}`,
-        data: results
+        data: results,
       })
     } catch (err) {
       next(err)
@@ -98,7 +98,7 @@ const trailsController = {
       res.json({
         success: true,
         message: `trail-${trailId} deleted`,
-        data: results
+        data: results,
       })
     } catch (err) {
       next(err)
@@ -196,7 +196,7 @@ const trailsController = {
       limit,
       offset,
       cursor,
-      search
+      search,
     }
 
     Object.keys(options).forEach((value, index) => {
@@ -210,7 +210,7 @@ const trailsController = {
       res.json({
         success: true,
         message: `get all deleted trails`,
-        data: results
+        data: results,
       })
     } catch (err) {
       next(err)
@@ -224,12 +224,12 @@ const trailsController = {
       res.json({
         success: true,
         message: `recover trail-${trailId}`,
-        data: results
+        data: results,
       })
     } catch (err) {
       next(err)
     }
-  }
+  },
 }
 
 module.exports = trailsController

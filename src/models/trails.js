@@ -49,16 +49,28 @@ function getPaginationAndFilterSuffix(options) {
 
 const trailModel = {
   findAll: async (options) => {
-    let sql = `SELECT * FROM trails WHERE is_deleted = 0`
-    let values = []
+    const sql = `SELECT * FROM trails WHERE is_deleted = 0`
+    const values = []
 
     const suffix = getPaginationAndFilterSuffix(options)
-    sql += suffix.sql + ';'
-    values = values.concat(suffix.values)
-    logger.debug(sql)
+    const findAllSql = sql + suffix.sql + ';'
+    const findAllValues = values.concat(suffix.values)
+
+    for (prop of ['limit', 'offset', 'cursor']) {
+      delete options[prop]
+    }
+    const countSuffix = getPaginationAndFilterSuffix(options)
+    const countSql = `SELECT COUNT(*) AS count FROM (${sql + countSuffix.sql}) AS tmp;`
+    const countValues = values.concat(countSuffix.values)
+
     try {
-      const [rows, fields] = await pool.query(sql, values)
-      return rows
+      logger.debug(sql)
+      const [rows, findAllFields] = await pool.query(findAllSql, findAllValues)
+
+      logger.debug(countSql)
+      const [count, countFields] = await pool.query(countSql, countValues)
+
+      return { result: rows, count: count[0]['count'] }
     } catch (err) {
       throw err
     }
@@ -94,7 +106,6 @@ const trailModel = {
         trailInfo.cover_picture_url,
         trailInfo.map_picture_url,
       ])
-      console.log(`SQL: ${sql},  ${JSON.stringify(trailInfo)}`)
       return rows
     } catch (err) {
       throw err
@@ -121,7 +132,7 @@ const trailModel = {
         Number(trailInfo.coordinateY),
         trailInfo.cover_picture_url,
         trailInfo.map_picture_url,
-        id
+        id,
       ])
       return rows
     } catch (err) {
@@ -301,7 +312,7 @@ const trailModel = {
     } catch (err) {
       throw err
     }
-  }
+  },
 }
 
 module.exports = trailModel
