@@ -49,16 +49,28 @@ function getPaginationAndFilterSuffix(options) {
 
 const trailModel = {
   findAll: async (options) => {
-    let sql = `SELECT * FROM trails WHERE is_deleted = 0`
-    let values = []
+    const sql = `SELECT * FROM trails WHERE is_deleted = 0`
+    const values = []
 
     const suffix = getPaginationAndFilterSuffix(options)
-    sql += suffix.sql + ';'
-    values = values.concat(suffix.values)
-    logger.debug(sql)
+    const findAllSql = sql + suffix.sql + ';'
+    const findAllValues = values.concat(suffix.values)
+
+    for (prop of ['limit', 'offset', 'cursor']) {
+      delete options[prop]
+    }
+    const countSuffix = getPaginationAndFilterSuffix(options)
+    const countSql = `SELECT COUNT(*) AS count FROM (${sql + countSuffix.sql}) AS tmp;`
+    const countValues = values.concat(countSuffix.values)
+
     try {
-      const [rows, fields] = await pool.query(sql, values)
-      return rows
+      logger.debug(sql)
+      const [rows, findAllFields] = await pool.query(findAllSql, findAllValues)
+
+      logger.debug(countSql)
+      const [count, countFields] = await pool.query(countSql, countValues)
+
+      return { result: rows, count: count[0]['count'] }
     } catch (err) {
       throw err
     }
@@ -76,7 +88,7 @@ const trailModel = {
   },
 
   add: async (trailInfo) => {
-    const sql = `INSERT INTO trails(author_id, title, description, location, altitude, length, situation, season, difficulty, coordinate, cover_picture_url, map_picture_url, required_time) VALUE (?, ?, ?, ?, ?, ?, ?, ?, ?, ST_PointFromText("POINT(? ?)"), ?, ?, ?)`
+    const sql = `INSERT INTO trails(author_id, title, description, location, altitude, length, situation, season, difficulty, coordinate, cover_picture_url, map_picture_url) VALUE (?, ?, ?, ?, ?, ?, ?, ?, ?, ST_PointFromText("POINT(? ?)"), ?, ?)`
     logger.debug(sql)
     try {
       const [rows, fields] = await pool.query(sql, [
@@ -93,9 +105,7 @@ const trailModel = {
         Number(trailInfo.coordinateY),
         trailInfo.cover_picture_url,
         trailInfo.map_picture_url,
-        trailInfo.required_time
       ])
-      console.log(`SQL: ${sql},  ${JSON.stringify(trailInfo)}`)
       return rows
     } catch (err) {
       throw err
@@ -104,7 +114,7 @@ const trailModel = {
 
   update: async (id, trailInfo) => {
     const sql = `UPDATE trails SET author_id = ?, title = ?, description = ?, 
-      location = ?, altitude = ?,  length = ?, situation = ? , season = ? , difficulty = ?, coordinate = ST_PointFromText("POINT(? ?)"), cover_picture_url = ?, map_picture_url  = ? , required_time = ? , is_deleted = ?
+      location = ?, altitude = ?,  length = ?, situation = ? , season = ? , difficulty = ?, coordinate = ST_PointFromText("POINT(? ?)"), cover_picture_url = ?, map_picture_url  = ?
       WHERE trail_id = ?`
     logger.debug(sql)
     try {
@@ -122,9 +132,7 @@ const trailModel = {
         Number(trailInfo.coordinateY),
         trailInfo.cover_picture_url,
         trailInfo.map_picture_url,
-        trailInfo.required_time,
-        trailInfo.is_deleted,
-        id
+        id,
       ])
       return rows
     } catch (err) {
@@ -304,7 +312,7 @@ const trailModel = {
     } catch (err) {
       throw err
     }
-  }
+  },
 }
 
 module.exports = trailModel

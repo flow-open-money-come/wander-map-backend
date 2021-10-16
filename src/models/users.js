@@ -109,6 +109,17 @@ const userModel = {
     }
   },
 
+  getUserCount: async () => {
+    const sql = 'SELECT COUNT(*) AS count FROM users;'
+    logger.debug(sql)
+    try {
+      const [rows, fields] = await pool.query(sql)
+      return rows
+    } catch (err) {
+      throw err
+    }
+  },
+
   suspendUser: async (userId) => {
     const values = []
     let sql = `UPDATE final_project_dev.users SET role = 'suspended' WHERE user_id = ?`

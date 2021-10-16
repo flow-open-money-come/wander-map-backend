@@ -78,6 +78,17 @@ function combineTagAndPaginationSuffix(originQuery = { sql: '', values: [] }, ta
   return originQuery
 }
 
+function getArticleCount(sql, values, tagSuffix, cb) {
+  let countSql
+  if (tagSuffix) {
+    countSql = `SELECT COUNT(*) AS count FROM (${(sql + tagSuffix.sql).replace(`GROUP_CONCAT(T.tag_name SEPARATOR ', ')`, `ARTICLEwithTAGS.tag_names`)}) AS tmp;`
+    values = values.concat(tagSuffix.value)
+  } else {
+    countSql = `SELECT COUNT(*) AS count FROM (${sql.replace(`GROUP_CONCAT(T.tag_name SEPARATOR ', ')`, `ARTICLEwithTAGS.tag_names`)}) AS tmp;`
+  }
+  sendQuery(countSql, values, cb)
+}
+
 const articleModel = {
   add: (article, cb) => {
     // author_id, title, content, location, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url
@@ -114,7 +125,7 @@ const articleModel = {
                     GROUP BY A.article_id
                   ) AS ARTICLEwithTAGS
               LEFT JOIN users AS U 
-                on ARTICLEwithTAGS.author_id = U.user_id
+                ON ARTICLEwithTAGS.author_id = U.user_id
               WHERE ARTICLEwithTAGS.is_deleted = 0`
     let values = []
 
@@ -126,12 +137,23 @@ const articleModel = {
     sql += ` GROUP BY ARTICLEwithTAGS.article_id`
 
     const tagSuffix = getTagSearchingSuffix(options.tag)
-    const paginationSuffix = getArticlePaginationSuffix(options)
-    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
 
-    sql = query.sql + ';'
-    values = query.values
-    sendQuery(sql, values, cb)
+    getArticleCount(sql, values, tagSuffix, (err, articleCount) => {
+      if (err) return cb(err)
+
+      const paginationSuffix = getArticlePaginationSuffix(options)
+      const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
+
+      sql = query.sql.replace(`GROUP_CONCAT(T.tag_name SEPARATOR ', ')`, `ARTICLEwithTAGS.tag_names`) + ';'
+      values = query.values
+
+      logger.debug(sql)
+      db.query(sql, values, (err, result) => {
+        if (err) cb(err)
+
+        cb(null, { result, count: articleCount[0].count })
+      })
+    })
   },
 
   findByLikes: (options, cb) => {
@@ -393,8 +415,7 @@ const articleModel = {
                     WHERE article_id = ?`
       const values = [articleId].concat(tagIdArray.map((obj) => obj.tag_id))
 
-      if (tagIdArray.length > 0)
-        sql += ` AND tag_id NOT IN (${Array(tagIdArray.length).fill('?').join(', ')})`
+      if (tagIdArray.length > 0) sql += ` AND tag_id NOT IN (${Array(tagIdArray.length).fill('?').join(', ')})`
 
       sql += ';'
       sendQuery(sql, values, cb)
@@ -431,7 +452,7 @@ const articleModel = {
     const sql = `UPDATE articles SET is_deleted = ? WHERE article_id = ?`
     const values = [0, articleId]
     sendQuery(sql, values, cb)
-  }
+  },
 }
 
 module.exports = articleModel

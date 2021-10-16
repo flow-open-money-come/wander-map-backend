@@ -180,8 +180,9 @@ const userController = {
     options.columns = 'user_id, nickname, email, icon_url, role, updated_at, created_at'
 
     try {
+      const userCount = (await userModel.getUserCount())[0]['count']
       const users = await userModel.findAll(options)
-      res.json({
+      res.set('x-total-count', userCount).json({
         success: true,
         message: 'user data',
         data: {
