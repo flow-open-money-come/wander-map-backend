@@ -227,15 +227,15 @@ const articleModel = {
   },
 
   findById: (articleId, cb) => {
-    const sql = `SELECT ARTICLEwithTAGS.*, TR.title AS trail_title, U.icon_url, U.nickname
+    const sql = `SELECT C.count, ARTICLEwithTAGS.*, TR.title AS trail_title, U.nickname, U.icon_url
                   FROM (
                     SELECT A.*, GROUP_CONCAT(TA.tag_name SEPARATOR ', ') AS tag_names
-                    FROM articles AS A 
+                    FROM articles AS A
                     LEFT JOIN article_tag_map AS TAM
                       ON (A.article_id = TAM.article_id)
                     LEFT JOIN tags AS TA
                       ON (TAM.tag_id = TA.tag_id)
-                    WHERE A.article_id = ?
+                    WHERE A.article_id = 1
                     AND A.is_deleted = 0
                     GROUP BY A.article_id
                   ) AS ARTICLEwithTAGS
@@ -243,10 +243,14 @@ const articleModel = {
                     USING(article_id)
                   LEFT JOIN trails AS TR
                     USING(trail_id)
+                    LEFT JOIN (SELECT article_id, COUNT(article_id) AS count
+								  FROM likes
+								  GROUP BY article_id) AS C
+				        	USING(article_id)
                   LEFT JOIN users AS U
                   ON U.user_id = ARTICLEwithTAGS.author_id
-                  WHERE ARTICLEwithTAGS.article_id = ?
-                  AND ARTICLEwithTAGS.is_deleted = 0`
+                  WHERE ARTICLEwithTAGS.article_id = 1
+                  AND ARTICLEwithTAGS.is_deleted = 0;`
     const values = [articleId, articleId]
     sendQuery(sql, values, cb)
   },
