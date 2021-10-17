@@ -249,9 +249,9 @@ const articleModel = {
 				        	USING(article_id)
                   LEFT JOIN users AS U
                   ON U.user_id = ARTICLEwithTAGS.author_id
-                  WHERE ARTICLEwithTAGS.article_id = 1
+                  WHERE ARTICLEwithTAGS.article_id = ?
                   AND ARTICLEwithTAGS.is_deleted = 0;`
-    const values = [articleId, articleId]
+    const values = [articleId, articleId, 1]
     sendQuery(sql, values, cb)
   },
 
