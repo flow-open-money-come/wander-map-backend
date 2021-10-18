@@ -15,6 +15,7 @@ const PORT = process.env.APP_SERVER_PORT || 8888
 const corsOptions = {
   credentials: true,
   origin: ['http://wandermap.tw', 'http://localhost:3000'],
+  exposedHeaders: ['x-total-count'],
 }
 
 app.disable('x-powered-by')

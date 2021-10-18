@@ -8,8 +8,7 @@ function checkArticlePermission(res, tokenPayload, articleId, cb) {
     if (err) return cb(err)
 
     const authorId = result[0].author_id
-    if (getPermissionLevel(tokenPayload, authorId) < 2)
-      return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, authorId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
     cb(null)
   })
 }
@@ -20,28 +19,14 @@ function checkMessagePermission(res, tokenPayload, messageId, cb) {
     if (!result[0]) return res.status(403).json(FORBIDDEN_ACTION)
 
     const authorId = result[0].author_id
-    if (getPermissionLevel(tokenPayload, authorId) < 2)
-      return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, authorId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
     cb(null)
   })
 }
 
 const articleController = {
   addArticle: (req, res, next) => {
-    const {
-      title,
-      content,
-      location,
-      tags,
-      coordinate,
-      altitude,
-      length,
-      departure_time,
-      end_time,
-      time_spent,
-      cover_picture_url,
-      gpx_url
-    } = req.body
+    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url } = req.body
     const { tokenPayload } = res.locals
     const authorId = tokenPayload.user_id
     const article = {
@@ -56,15 +41,14 @@ const articleController = {
       end_time,
       time_spent,
       cover_picture_url,
-      gpx_url
+      gpx_url,
     }
 
     for (column in article) {
       if (!article[column] && article[column] !== 0) delete article[column]
     }
 
-    if (getPermissionLevel(tokenPayload, authorId) < 2)
-      return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, authorId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
 
     articleModel.add(article, (err, articleResult) => {
       if (err) return next(err)
@@ -76,7 +60,7 @@ const articleController = {
         res.json({
           success: true,
           message: 'OK',
-          data: result
+          data: result,
         })
       })
     })
@@ -93,7 +77,7 @@ const articleController = {
       offset,
       cursor,
       search,
-      tag
+      tag,
     }
 
     Object.keys(options).forEach((value, index) => {
@@ -104,10 +88,10 @@ const articleController = {
 
     articleModel.findAll(options, (err, results) => {
       if (err) return next(err)
-      res.json({
+      res.set('x-total-count', results.count).json({
         success: true,
         message: 'OK',
-        data: results
+        data: results.result,
       })
     })
   },
@@ -118,14 +102,14 @@ const articleController = {
       limit: limit || 20,
       offset,
       cursor,
-      tag
+      tag,
     }
     articleModel.findByLikes(options, (err, results) => {
       if (err) return next(err)
       res.json({
         success: true,
         message: 'OK',
-        data: results
+        data: results,
       })
     })
   },
@@ -137,7 +121,7 @@ const articleController = {
       res.json({
         success: true,
         message: `get article-id ${articleId}`,
-        data: results
+        data: results,
       })
     })
   },
@@ -145,21 +129,7 @@ const articleController = {
   updateArticle: (req, res, next) => {
     const { articleId } = req.params
     const { tokenPayload } = res.locals
-    const {
-      title,
-      content,
-      location,
-      tags,
-      coordinate,
-      altitude,
-      length,
-      departure_time,
-      end_time,
-      time_spent,
-      cover_picture_url,
-      gpx_url,
-      is_deleted
-    } = req.body
+    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url, is_deleted } = req.body
     const article = {
       title,
       content,
@@ -172,7 +142,7 @@ const articleController = {
       time_spent,
       cover_picture_url,
       gpx_url,
-      is_deleted
+      is_deleted,
     }
 
     for (column in article) {
@@ -194,7 +164,7 @@ const articleController = {
               res.json({
                 success: true,
                 message: 'OK',
-                data: results
+                data: results,
               })
             })
           }
@@ -206,7 +176,7 @@ const articleController = {
               res.json({
                 success: true,
                 message: 'OK',
-                data: results
+                data: results,
               })
             })
           })
@@ -226,7 +196,7 @@ const articleController = {
         res.json({
           success: true,
           message: 'OK',
-          data: results
+          data: results,
         })
       })
     })
@@ -238,14 +208,14 @@ const articleController = {
     const options = {
       limit: limit || 5,
       cursor,
-      offset
+      offset,
     }
     articleModel.findMessagesById(articleId, options, (err, results) => {
       if (err) return next(err)
       res.json({
         success: true,
         message: 'OK',
-        data: results
+        data: results,
       })
     })
   },
@@ -256,8 +226,7 @@ const articleController = {
     const { tokenPayload } = res.locals
     const authorId = tokenPayload.user_id
 
-    if (getPermissionLevel(tokenPayload, authorId) < 2)
-      return res.status(403).json(FORBIDDEN_ACTION)
+    if (getPermissionLevel(tokenPayload, authorId) < 2) return res.status(403).json(FORBIDDEN_ACTION)
 
     if (!content) return res.status(403).json(INVALID_INPUT)
 
@@ -266,7 +235,7 @@ const articleController = {
       res.json({
         success: true,
         message: 'OK',
-        data: results
+        data: results,
       })
     })
   },
@@ -283,7 +252,7 @@ const articleController = {
         res.json({
           success: true,
           message: 'OK',
-          data: results
+          data: results,
         })
       })
     })
@@ -302,7 +271,7 @@ const articleController = {
         res.json({
           success: true,
           message: 'OK',
-          data: results
+          data: results,
         })
       })
     })
@@ -317,7 +286,7 @@ const articleController = {
       res.json({
         success: true,
         message: `article-${articleId} linked to trail-${trail_id}`,
-        data: results
+        data: results,
       })
     })
   },
@@ -330,7 +299,7 @@ const articleController = {
       res.json({
         success: true,
         message: `article-${articleId} unlinked to trail-${trailId}`,
-        data: results
+        data: results,
       })
     })
   },
@@ -342,7 +311,7 @@ const articleController = {
       limit: limit || 20,
       offset,
       cursor,
-      search
+      search,
     }
 
     Object.keys(options).forEach((value, index) => {
@@ -356,7 +325,7 @@ const articleController = {
       res.json({
         success: true,
         message: `get all deleted articles`,
-        data: results
+        data: results,
       })
     })
   },
@@ -369,10 +338,10 @@ const articleController = {
       res.json({
         success: true,
         message: `recover article-${articleId}`,
-        data: results
+        data: results,
       })
     })
-  }
+  },
 }
 
 module.exports = articleController
