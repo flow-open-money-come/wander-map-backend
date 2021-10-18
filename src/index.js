@@ -1,5 +1,7 @@
 require('dotenv').config()
 
+const fs = require('fs')
+const https = require('https')
 const express = require('express')
 const cors = require('cors')
 const cookieParser = require('cookie-parser')
@@ -12,6 +14,12 @@ const { PATH_ERROR } = require('./constants/errors')
 
 const app = express()
 const PORT = process.env.APP_SERVER_PORT || 8888
+const key = fs.readFileSync(process.env.SSL_KEY, 'utf8')
+const cert = fs.readFileSync(process.env.SSL_CERTIFICATE, 'utf8')
+const credentials = {
+  key,
+  cert,
+}
 const corsOptions = {
   credentials: true,
   origin: ['https://wandermap.netlify.app', 'http://localhost:3000'],
@@ -50,6 +58,6 @@ app.use((err, req, res, next) => {
   })
 })
 
-app.listen(PORT, () => {
+https.createServer(credentials, app).listen(PORT, () => {
   console.log(`wander-map-backend server is listening on port ${PORT}.`)
 })
