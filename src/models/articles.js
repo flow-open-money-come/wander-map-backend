@@ -235,7 +235,7 @@ const articleModel = {
                       ON (A.article_id = TAM.article_id)
                     LEFT JOIN tags AS TA
                       ON (TAM.tag_id = TA.tag_id)
-                    WHERE A.article_id = 1
+                    WHERE A.article_id = ?
                     AND A.is_deleted = 0
                     GROUP BY A.article_id
                   ) AS ARTICLEwithTAGS
@@ -251,7 +251,7 @@ const articleModel = {
                   ON U.user_id = ARTICLEwithTAGS.author_id
                   WHERE ARTICLEwithTAGS.article_id = ?
                   AND ARTICLEwithTAGS.is_deleted = 0;`
-    const values = [articleId, articleId, 1]
+    const values = [articleId, articleId]
     sendQuery(sql, values, cb)
   },
 
