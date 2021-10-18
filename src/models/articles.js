@@ -11,9 +11,7 @@ function sendQuery(sql, values, cb) {
 
 function getTagId(tags, cb) {
   if (!tags || tags.length === 0) return cb(null, [])
-  const sql = `SELECT tag_id FROM tags WHERE tag_name IN(${Array(tags.length)
-    .fill('?')
-    .join(', ')});`
+  const sql = `SELECT tag_id FROM tags WHERE tag_name IN(${Array(tags.length).fill('?').join(', ')});`
   sendQuery(sql, tags, cb)
 }
 
@@ -51,11 +49,7 @@ function getTagSearchingSuffix(tags = []) {
   return { sql, value }
 }
 
-function combineTagAndPaginationSuffix(
-  originQuery = { sql: '', values: [] },
-  tagSuffix = false,
-  paginationSuffix = false
-) {
+function combineTagAndPaginationSuffix(originQuery = { sql: '', values: [] }, tagSuffix = false, paginationSuffix = false) {
   if (tagSuffix) {
     originQuery.sql += tagSuffix.sql
     originQuery.values.push(tagSuffix.value)
@@ -64,24 +58,14 @@ function combineTagAndPaginationSuffix(
   if (paginationSuffix && /GROUP BY A.article_id/.test(paginationSuffix.sql)) {
     originQuery.sql = originQuery.sql.replace('GROUP BY A.article_id', '')
     if (tagSuffix) {
-      originQuery.sql = originQuery.sql.replace(
-        `HAVING GROUP_CONCAT(T.tag_name SEPARATOR ', ') REGEXP ?`,
-        ''
-      )
+      originQuery.sql = originQuery.sql.replace(`HAVING GROUP_CONCAT(T.tag_name SEPARATOR ', ') REGEXP ?`, '')
       const tagValue = originQuery.values.pop()
 
-      paginationSuffix.sql = paginationSuffix.sql.replace(
-        'GROUP BY A.article_id',
-        `GROUP BY A.article_id HAVING GROUP_CONCAT(T.tag_name SEPARATOR ', ') REGEXP ?`
-      )
+      paginationSuffix.sql = paginationSuffix.sql.replace('GROUP BY A.article_id', `GROUP BY A.article_id HAVING GROUP_CONCAT(T.tag_name SEPARATOR ', ') REGEXP ?`)
       const limitValue = paginationSuffix.values.pop()
 
       originQuery.sql += paginationSuffix.sql
-      originQuery.values = originQuery.values.concat([
-        ...paginationSuffix.values,
-        tagValue,
-        limitValue,
-      ])
+      originQuery.values = originQuery.values.concat([...paginationSuffix.values, tagValue, limitValue])
     } else {
       originQuery.sql += paginationSuffix.sql
       originQuery.values = originQuery.values.concat(paginationSuffix.values)
@@ -97,16 +81,10 @@ function combineTagAndPaginationSuffix(
 function getArticleCount(sql, values, tagSuffix, cb) {
   let countSql
   if (tagSuffix) {
-    countSql = `SELECT COUNT(*) AS count FROM (${(sql + tagSuffix.sql).replace(
-      `GROUP_CONCAT(T.tag_name SEPARATOR ', ')`,
-      `ARTICLEwithTAGS.tag_names`
-    )}) AS tmp;`
+    countSql = `SELECT COUNT(*) AS count FROM (${(sql + tagSuffix.sql).replace(`GROUP_CONCAT(T.tag_name SEPARATOR ', ')`, `ARTICLEwithTAGS.tag_names`)}) AS tmp;`
     values = values.concat(tagSuffix.value)
   } else {
-    countSql = `SELECT COUNT(*) AS count FROM (${sql.replace(
-      `GROUP_CONCAT(T.tag_name SEPARATOR ', ')`,
-      `ARTICLEwithTAGS.tag_names`
-    )}) AS tmp;`
+    countSql = `SELECT COUNT(*) AS count FROM (${sql.replace(`GROUP_CONCAT(T.tag_name SEPARATOR ', ')`, `ARTICLEwithTAGS.tag_names`)}) AS tmp;`
   }
   sendQuery(countSql, values, cb)
 }
@@ -123,18 +101,11 @@ const articleModel = {
 
     const articlePropertyNames = Object.keys(article)
     let sql = `INSERT INTO articles(${articlePropertyNames.join(', ')})
-                VALUES (${Array(articlePropertyNames.length)
-                  .fill('?')
-                  .join(', ')})`
+                VALUES (${Array(articlePropertyNames.length).fill('?').join(', ')})`
     let values = Object.values(article)
 
-    if (
-      (coordinate?.x || coordinate?.x === 0) &&
-      (coordinate?.y || coordinate?.y === 0)
-    ) {
-      sql = sql
-        .replace(')', ', coordinate)')
-        .replace('?)', '?, ST_PointFromText("POINT(? ?)"))')
+    if ((coordinate?.x || coordinate?.x === 0) && (coordinate?.y || coordinate?.y === 0)) {
+      sql = sql.replace(')', ', coordinate)').replace('?)', '?, ST_PointFromText("POINT(? ?)"))')
       values = values.concat([Number(coordinate.x), Number(coordinate.y)])
     }
     sql += ';'
@@ -171,17 +142,9 @@ const articleModel = {
       if (err) return cb(err)
 
       const paginationSuffix = getArticlePaginationSuffix(options)
-      const query = combineTagAndPaginationSuffix(
-        { sql, values },
-        tagSuffix,
-        paginationSuffix
-      )
+      const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
 
-      sql =
-        query.sql.replace(
-          `GROUP_CONCAT(T.tag_name SEPARATOR ', ')`,
-          `ARTICLEwithTAGS.tag_names`
-        ) + ';'
+      sql = query.sql.replace(`GROUP_CONCAT(T.tag_name SEPARATOR ', ')`, `ARTICLEwithTAGS.tag_names`) + ';'
       values = query.values
 
       logger.debug(sql)
@@ -215,11 +178,7 @@ const articleModel = {
 
     const tagSuffix = getTagSearchingSuffix(options.tag)
     const paginationSuffix = getArticlePaginationSuffix(options)
-    const query = combineTagAndPaginationSuffix(
-      { sql, values },
-      tagSuffix,
-      paginationSuffix
-    )
+    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
 
     sql = query.sql + ';'
     values = query.values
@@ -260,25 +219,15 @@ const articleModel = {
 
     let values = []
     let sql = `UPDATE articles SET `
-    const columnNames = Object.keys(article).filter(
-      (data) => data !== 'coordinate'
-    )
+    const columnNames = Object.keys(article).filter((data) => data !== 'coordinate')
 
-    values = Object.values(article).filter(
-      (data) => data !== article.coordinate
-    )
+    values = Object.values(article).filter((data) => data !== article.coordinate)
     if (values.length > 0) sql += columnNames.join(' = ?, ') + ` = ? `
 
-    if (
-      (article.coordinate?.x || article.coordinate?.x === 0) &&
-      (article.coordinate?.y || article.coordinate?.y === 0)
-    ) {
+    if ((article.coordinate?.x || article.coordinate?.x === 0) && (article.coordinate?.y || article.coordinate?.y === 0)) {
       if (values !== 0) sql += ','
       sql += ` coordinate = ST_PointFromText("POINT(? ?)")`
-      values = values.concat([
-        Number(article.coordinate.x),
-        Number(article.coordinate.y),
-      ])
+      values = values.concat([Number(article.coordinate.x), Number(article.coordinate.y)])
     } else {
       if (columnNames.length === 0) return cb(null, 'nothing to update')
     }
@@ -337,11 +286,7 @@ const articleModel = {
 
     const tagSuffix = getTagSearchingSuffix(options.tag)
     const paginationSuffix = getArticlePaginationSuffix(options)
-    const query = combineTagAndPaginationSuffix(
-      { sql, values },
-      tagSuffix,
-      paginationSuffix
-    )
+    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
 
     sql = query.sql + ';'
     values = query.values
@@ -354,10 +299,12 @@ const articleModel = {
       options = undefined
     }
 
-    let sql = `SELECT A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
+    let sql = `SELECT U.nickname, U.icon_url, A.*, GROUP_CONCAT(T.tag_name SEPARATOR ', ') AS tag_names
               FROM likes AS L
               LEFT JOIN articles AS A
               USING(article_id)
+              LEFT JOIN users AS U
+              ON A.author_id = U.user_id
               LEFT JOIN article_tag_map AS M
               USING(article_id)
               LEFT JOIN tags AS T
@@ -369,11 +316,7 @@ const articleModel = {
 
     const tagSuffix = getTagSearchingSuffix(options.tag)
     const paginationSuffix = getArticlePaginationSuffix(options)
-    const query = combineTagAndPaginationSuffix(
-      { sql, values },
-      tagSuffix,
-      paginationSuffix
-    )
+    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
 
     sql = query.sql + ';'
     values = query.values
@@ -432,8 +375,7 @@ const articleModel = {
     const paginationSuffix = getArticlePaginationSuffix(options)
     const values = [trailId, ...paginationSuffix.values]
 
-    if (/GROUP BY A.article_id/.test(paginationSuffix.sql))
-      sql = sql.replace('GROUP BY A.article_id', '')
+    if (/GROUP BY A.article_id/.test(paginationSuffix.sql)) sql = sql.replace('GROUP BY A.article_id', '')
     sql += paginationSuffix.sql + ';'
     sendQuery(sql, values, cb)
   },
@@ -468,13 +410,8 @@ const articleModel = {
       if (tagIdArray.length === 0) return cb(null, [])
 
       const sql = `INSERT IGNORE INTO article_tag_map (article_id, tag_id)
-                    VALUES ${Array(tagIdArray.length)
-                      .fill('(?, ?)')
-                      .join(', ')};`
-      const values = tagIdArray.reduce(
-        (accu, curr) => accu.concat([articleId, curr.tag_id]),
-        []
-      )
+                    VALUES ${Array(tagIdArray.length).fill('(?, ?)').join(', ')};`
+      const values = tagIdArray.reduce((accu, curr) => accu.concat([articleId, curr.tag_id]), [])
 
       sendQuery(sql, values, cb)
     })
@@ -488,10 +425,7 @@ const articleModel = {
                     WHERE article_id = ?`
       const values = [articleId].concat(tagIdArray.map((obj) => obj.tag_id))
 
-      if (tagIdArray.length > 0)
-        sql += ` AND tag_id NOT IN (${Array(tagIdArray.length)
-          .fill('?')
-          .join(', ')})`
+      if (tagIdArray.length > 0) sql += ` AND tag_id NOT IN (${Array(tagIdArray.length).fill('?').join(', ')})`
 
       sql += ';'
       sendQuery(sql, values, cb)
@@ -517,11 +451,7 @@ const articleModel = {
 
     const tagSuffix = getTagSearchingSuffix(options.tag)
     const paginationSuffix = getArticlePaginationSuffix(options)
-    const query = combineTagAndPaginationSuffix(
-      { sql, values },
-      tagSuffix,
-      paginationSuffix
-    )
+    const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
 
     sql = query.sql + ';'
     values = query.values
