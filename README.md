@@ -9,20 +9,20 @@
 ## 環境建置
 
 1. 把 `.env.example` 改名成 `.env`。打開檔案填入等號後面的值。
-2. `npm install`：安裝所需套件。
-3. `npm run build`：在 database 建立所需的 table。
+2. `$ npm install`：安裝所需套件。
+3. ~~`$ npm run build`：在 database 建立所需的 table。~~
 
 ## 開發
 
-`npm run start`：運行應用程式。
+`$ npm run start`：運行應用程式。
 
-`npm run dev`：測試用，程式碼變動時會自動重啟應用程式。
+`$ npm run dev`：測試用，程式碼變動時會自動重啟應用程式。
 
 ## 部署
 
 由於 refresh token 是以 `SameSite=None; Secure` 的 cookie 傳送，所以正式運行服務需要申請 SSL 憑證。
 
-獲得 SSL 的未加密私鑰與憑證後，將檔案路徑設定在 `.env` 的 `SSL_KEY`、`SSL_CERTIFICATE`。之後 `npm run dev`、`npm run start` 都會自動啟用 https 伺服器。
+獲得 SSL 的未加密私鑰與憑證後，將檔案路徑設定在 `.env` 的 `SSL_KEY`、`SSL_CERTIFICATE`。之後 `$ npm run dev`、`$ npm run start` 都會自動啟用 https 伺服器。
 
 ### 用 [certbot](https://certbot.eff.org/) 申請 SSL 憑證
 
@@ -40,10 +40,12 @@
 6. `$ cd <path_to_project_directory>` 進入專案根目錄，創資料夾 `$ mkdir ./src/public`。
 7. `$ npm run start` 或 `$ npm run dev` 把伺服器跑起來。
 8. `$ sudo certbot certonly --webroot`：用 certbot 申請憑證。接下來有一系列問答，根據需求填入值，可參考保哥文章。在 `Input the webroot for www.your-domain.com.tw:` 這個問題填入 `<path_to_project_directory>/src/public`。
-9. 將憑證與金鑰的路徑填入 `.env` 檔案。範例為 `SSL_KEY=/etc/letsencrypt/live/www.your-domain.com.tw/privkey.pem SSL_CERTIFICATE=/etc/letsencrypt/live/www.your-domain.com.tw/fullchain.pem`。
+9. 將金鑰與憑證的路徑填入 `.env` 檔案。範例為 `SSL_KEY=/etc/letsencrypt/live/www.your-domain.com.tw/privkey.pem`、`SSL_CERTIFICATE=/etc/letsencrypt/live/www.your-domain.com.tw/fullchain.pem`。
 10. `$ sudo certbot renew --webroot --dry-run`，確認排程自動更新。
 
-## Docker(deprecate)
+## Docker 部署(deprecate)
+
+還沒寫先別用。
 
 ### 安裝 docker
 
@@ -51,13 +53,13 @@
 
 ### 執行
 
-`docker build -t <image_name> .`：從 Dockerfile 建立 image。
+`$ docker build -t <image_name> .`：從 Dockerfile 建立 image。
 
-`docker run -dp <host_port>:<container_port> --name <container_name> --env-file ./.env <image_name>`：從 image 建立 container，並讀入環境變數。
+`$ docker run -dp <host_port>:<container_port> --name <container_name> --env-file ./.env <image_name>`：從 image 建立 container，並讀入環境變數。
 
-`docker-compose up -d`：由 docker-compose.yml 一次建立多個 container，並在背景執行。
+`$ docker-compose up -d`：由 docker-compose.yml 一次建立多個 container，並在背景執行。
 
-`docker-compose down`：停止 docker-compose。
+`$ docker-compose down`：停止 docker-compose。
 
 ## 檔案架構
 
@@ -90,7 +92,7 @@
     ├── index.js                       # application server 進入點
     ├── logger.js                      # logger 的設定
     ├── middlewares                    # 自訂的 middlewares
-    │   ├── auth.js                    # 檢查 token 是否被竄改或過期，沒問題就放進 res.locals.tokenPayload 變數中
+    │   ├── auth.js                    # 檢查 jwt 是否被竄改或過期，沒問題就放進 res.locals.tokenPayload 變數中
     │   ├── logRequest.js              # 把收到的請求寫入 log
     │   └── validators.js              # 驗證使用者輸入
     ├── models                         # 與資料庫互動的介面
