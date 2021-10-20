@@ -26,7 +26,7 @@ function checkMessagePermission(res, tokenPayload, messageId, cb) {
 
 const articleController = {
   addArticle: (req, res, next) => {
-    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url } = req.body
+    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url , relatedTrail} = req.body
     const { tokenPayload } = res.locals
     const authorId = tokenPayload.user_id
     const article = {
@@ -41,7 +41,7 @@ const articleController = {
       end_time,
       time_spent,
       cover_picture_url,
-      gpx_url,
+      gpx_url
     }
 
     for (column in article) {
@@ -56,11 +56,14 @@ const articleController = {
       articleModel.createTagAssociation(articleResult.insertId, tags, (err, result) => {
         if (err) return next(err)
 
-        userModel
-        res.json({
-          success: true,
-          message: 'OK',
-          data: result,
+        articleModel.createTrailAssociation(articleResult.insertId, relatedTrail, (err, result) => {
+          if (err) return next(err)
+
+          res.json({
+            success: true,
+            message: `OK new article ${articleResult.insertId}`,
+            data: result
+          })
         })
       })
     })
@@ -129,7 +132,22 @@ const articleController = {
   updateArticle: (req, res, next) => {
     const { articleId } = req.params
     const { tokenPayload } = res.locals
-    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url, is_deleted } = req.body
+    const {
+      title,
+      content,
+      location,
+      tags,
+      coordinate,
+      altitude,
+      length,
+      departure_time,
+      end_time,
+      time_spent,
+      cover_picture_url,
+      gpx_url,
+      is_deleted,
+      relatedTrail
+    } = req.body
     const article = {
       title,
       content,
@@ -154,30 +172,34 @@ const articleController = {
 
       articleModel.update(articleId, article, (err, results) => {
         if (err) return next(err)
-
+        
+        if (relatedTrail || relatedTrail === '') {
+          articleModel.cancelTrailAssociation(articleId, (err, result) => {
+            if (err) return next(err)
+          })
+          if (relatedTrail !== '') {
+            articleModel.createTrailAssociation(articleId, relatedTrail, (err, result) => {
+              if (err) return next(err)
+            })
+          }
+        }
+        
         articleModel.createTagAssociation(articleId, tags, (err, result) => {
           if (err) return next(err)
 
           if (!tags) {
-            return articleModel.findById(articleId, (err, results) => {
-              if (err) return next(err)
-              res.json({
-                success: true,
-                message: 'OK',
-                data: results,
-              })
+            res.json({
+              success: true,
+              message: `OK`,
+              data: results
             })
           }
           articleModel.deleteTagAssociationNotInList(articleId, tags, (err, result) => {
             if (err) return next(err)
-
-            articleModel.findById(articleId, (err, results) => {
-              if (err) return next(err)
-              res.json({
-                success: true,
-                message: 'OK',
-                data: results,
-              })
+            res.json({
+              success: true,
+              message: `OK`,
+              data: result
             })
           })
         })
