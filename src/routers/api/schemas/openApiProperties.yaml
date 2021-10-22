@@ -1,0 +1,110 @@
+tags:
+  - name: Users
+    description: User management
+  - name: Todos
+    description: todo list
+  - name: Articles
+    description: Articles management
+  - name: Trails
+    description: Trails management
+
+components:
+  securitySchemes:
+    accessToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    refreshToken:
+      type: apiKey
+      name: refreshToken
+      in: cookie
+  responses:
+    unauthorizedError:
+      description: Access token is missing or invalid
+    internalError:
+      description: internal server error - 後端伺服器錯誤
+  parameters:
+    limit:
+      name: limit
+      in: query
+      description: 一次 query 帶幾筆資料，max:200。
+      schema:
+        type: integer
+        example: 20
+    offset:
+      name: offset
+      in: query
+      description: 偏移量，一開始為 0。加上 limit 的值就能拿下一頁的資料。
+      schema:
+        type: integer
+        example: 0
+    cursor:
+      name: cursor
+      in: query
+      description: 游標，指在資料的起點。把前一次 query 返回的最後一筆資料 id + 1 發 request 就可以拿下一頁的資料。
+      schema:
+        type: integer
+        example: 1
+    tag:
+      name: tag
+      in: query
+      description: 以聯集的方式搜尋心得的 tag
+      schema:
+        type: string
+        example: 夜景
+    location:
+      name: location
+      in: query
+      description: north, middle, south, east, island 四個值，以聯集方式搜尋步道。
+      style: form
+      explode: true
+      schema:
+        type: array
+        items:
+          type: string
+        example: [north, middle, south, east, island]
+    difficult:
+      name: difficult
+      in: query
+      description: 新手, 入門, 進階, 挑戰, 困難 四個值，以聯集方式搜尋步道。
+      style: form
+      explode: true
+      schema:
+        type: array
+        items:
+          type: string
+        example: [新手, 入門, 進階, 挑戰, 困難]
+    altitude:
+      name: altitude
+      in: query
+      description: altitude[gt]、alaitude[lt] 作為 query 的 key，以交集的方式搜尋步道。
+      style: deepObject
+      explode: true
+      schema:
+        type: object
+        properties:
+          gt:
+            type: array
+            items: integer
+          lt:
+            type: array
+            items: integer
+        example: { gt: 1000, lt: 2000 }
+    length:
+      name: length
+      in: query
+      description: length[gt]、length[lt] 作為 query 的 key，以交集的方式搜尋步道。
+      style: deepObject
+      explode: true
+      schema:
+        type: object
+        properties:
+          gt:
+            type: array
+            items: number
+            format: float
+          lt:
+            type: array
+            items: number
+            format: float
+        example: { gt: 1.2, lt: 5 }

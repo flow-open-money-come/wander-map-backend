@@ -14,7 +14,7 @@ const app = express()
 const PORT = process.env.APP_SERVER_PORT || 8888
 const corsOptions = {
   credentials: true,
-  origin: ['https://wandermap.netlify.app', 'http://localhost:3000'],
+  origin: ['https://wandermap.netlify.app', 'https://wandermap.tw', 'https://api.wandermap.tw', 'https://backup.wandermap.tw', 'http://localhost:3000', 'http://localhost:8888'],
   exposedHeaders: ['x-total-count'],
 }
 
