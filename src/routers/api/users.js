@@ -334,7 +334,7 @@ userRouter.delete('/:userId/todos/:todoId', auth, paramValidator, todoController
  *  @swagger
  *  /api/v1/users/{userId}/articles:
  *  get:
- *    tags: [Users, Articles]
+ *    tags: [Users]
  *    summary: 取得屬於使用者的所有心得
  *    description: 取得心得之中 authorId = userId 的所有心得
  *    parameters:
@@ -359,7 +359,7 @@ userRouter.get('/:userId/articles', paramValidator, paginationAndSearchValidator
  *  @swagger
  *  /api/v1/users/{userId}/liked-articles:
  *  get:
- *    tags: [Users, Articles]
+ *    tags: [Users]
  *    summary: 取得使用者按讚的心得
  *    description: 取得使用者按過讚的所有心得
  *    parameters:
@@ -384,7 +384,7 @@ userRouter.get('/:userId/liked-articles', paramValidator, paginationAndSearchVal
  *  @swagger
  *  /api/v1/users/{userId}/liked-articles:
  *  post:
- *    tags: [Users, Articles]
+ *    tags: [Users]
  *    summary: 使用者對心得按讚
  *    description: 使用者對心得按讚
  *    security:
@@ -411,7 +411,7 @@ userRouter.post('/:userId/liked-articles', auth, paramValidator, likedArticleVal
  *  @swagger
  *  /api/v1/users/{userId}/liked-articles/{articleId}:
  *  delete:
- *    tags: [Users, Articles]
+ *    tags: [Users]
  *    summary: 使用者對心得取消按讚
  *    description: 使用者對心得取消按讚
  *    security:
@@ -440,7 +440,7 @@ userRouter.delete('/:userId/liked-articles/:articleId', auth, paramValidator, us
  *  @swagger
  *  /api/v1/users/{userId}/trails:
  *  get:
- *    tags: [Users, Trails]
+ *    tags: [Users]
  *    summary: 取得屬於使用者的所有步道
  *    description: 取得屬於使用者的所有步道
  *    parameters:
@@ -468,7 +468,7 @@ userRouter.get('/:userId/trails', paramValidator, paginationAndSearchValidator, 
  *  @swagger
  *  /api/v1/users/{userId}/collected-trails:
  *  get:
- *    tags: [Users, Trails]
+ *    tags: [Users]
  *    summary: 取得使用者收藏的步道
  *    description: 取得使用者收藏的步道
  *    parameters:
@@ -496,7 +496,7 @@ userRouter.get('/:userId/collected-trails', paramValidator, paginationAndSearchV
  *  @swagger
  *  /api/v1/users/{userId}/collected-trails:
  *  post:
- *    tags: [Users, Trails]
+ *    tags: [Users]
  *    summary: 使用者收藏步道
  *    description: 使用者收藏步道
  *    security:
@@ -527,7 +527,7 @@ userRouter.post('/:userId/collected-trails', auth, paramValidator, collectedTrai
  *  @swagger
  *  /api/v1/users/{userId}/collected-trails/{trailId}:
  *  delete:
- *    tags: [Users, Trails]
+ *    tags: [Users]
  *    summary: 使用者取消收藏步道
  *    description: 使用者取消收藏步道
  *    security:
