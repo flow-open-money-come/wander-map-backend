@@ -34,7 +34,7 @@ trailRouter.get('/', paginationAndSearchValidator, trailsController.getAll)
  * /api/v1/trails/hot/{Amount}:
  *  get:
  *    tags: [Trails]
- *    summary: 取得熱門步道。
+ *    summary: 取得熱門步道
  *    description: 依照收藏數，取得前 N 筆（Amount）步道資料。
  *    parameters:
  *       - name: Amount

@@ -96,7 +96,7 @@ articleRouter.get('/hot', paginationAndSearchValidator, articleController.getHot
  *      "500":
  *        $ref: '#/components/responses/internalError'
  */
-articleRouter.get('/deleted', paginationAndSearchValidator, articleController.getDeletedArticles)
+articleRouter.get('/deleted', auth, paginationAndSearchValidator, articleController.getDeletedArticles)
 
 /**
  *  @swagger
@@ -116,7 +116,7 @@ articleRouter.get('/deleted', paginationAndSearchValidator, articleController.ge
  *      "500":
  *        $ref: '#/components/responses/internalError'
  */
-articleRouter.patch('/deleted/:articleId/', paramValidator, articleController.recoverDeletedArticle)
+articleRouter.patch('/deleted/:articleId/', auth, paramValidator, articleController.recoverDeletedArticle)
 
 /**
  *  @swagger
@@ -319,66 +319,6 @@ articleRouter.patch('/:articleId/messages/:messageId', auth, paramValidator, art
  *        $ref: '#/components/responses/internalError'
  */
 articleRouter.delete('/:articleId/messages/:messageId', auth, paramValidator, articleController.deleteMessage)
-
-/**
- *  @swagger
- *  /api/v1/articles/{articleId}/relate-trail:
- *  post:
- *    tags: [Articles]
- *    summary: 新增某心得與步道的關聯
- *    description: 新增某心得與步道的關聯
- *    parameters:
- *      - name: articleId
- *        in: path
- *        description: 心得 id
- *        required: true
- *    requestBody:
- *      content:
- *        application/x-www-form-urlencoded:
- *          schema:
- *            $ref: '#/components/schemas/relateTrail'
- *        application/json:
- *          schema:
- *            $ref: '#/components/schemas/relateTrail'
- *    responses:
- *      "200":
- *        description: article-${articleId} linked to trail-${trail_id}
- *      "401":
- *        $ref: '#/components/responses/unauthorizedError'
- *      "403":
- *        $ref: '#/components/responses/forbiddenAction'
- *      "500":
- *        $ref: '#/components/responses/internalError'
- */
-articleRouter.post('/:articleId/relate-trail', paramValidator, articleController.relateTrail)
-
-/**
- *  @swagger
- *  /api/v1/articles/{articleId}/relate-trail/{trailId}:
- *  delete:
- *    tags: [Articles]
- *    summary: 刪除某心得與步道的關聯
- *    description: 刪除某心得與步道的關聯
- *    parameters:
- *      - name: articleId
- *        in: path
- *        description: 心得 id
- *        required: true
- *      - name: trailId
- *        in: path
- *        description: 欲取消關聯的步道 id
- *        required: true
- *    responses:
- *      "200":
- *        description: article-${articleId} unlinked to trail-${trailId}
- *      "401":
- *        $ref: '#/components/responses/unauthorizedError'
- *      "403":
- *        $ref: '#/components/responses/forbiddenAction'
- *      "500":
- *        $ref: '#/components/responses/internalError'
- */
-articleRouter.delete('/:articleId/relate-trail/:trailId', paramValidator, articleController.unRelateTrail)
 
 articleRouter.all('*', (req, res) => res.status(400).json(PATH_ERROR))
 

@@ -14,6 +14,10 @@ components:
           type: string
           description: 心得的內容
           example: testContent
+        relatedTrail:
+          type: string
+          description: 欲關聯的步道名稱
+          example: 松羅步道
         location:
           type: string
           description: 出遊心得所在的行政區
@@ -85,6 +89,10 @@ components:
           type: string
           description: 心得的內容
           example: testContent
+        relatedTrail:
+          type: string
+          description: 欲關聯的步道名稱
+          example: 松羅步道
         location:
           type: string
           description: 出遊心得所在的行政區
