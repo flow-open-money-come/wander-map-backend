@@ -27,7 +27,7 @@ const todoController = {
       const todos = await todoModel.getAll(options)
       res.json({
         success: true,
-        message: 'OK',
+        message: 'get todos',
         data: { todos },
       })
     } catch (err) {

@@ -213,7 +213,7 @@ const userController = {
       const user = await userModel.find(options)
       res.json({
         success: true,
-        message: 'get user data',
+        message: 'specific user data',
         data: user[0],
       })
     } catch (err) {
