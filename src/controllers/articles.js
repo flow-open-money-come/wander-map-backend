@@ -1,6 +1,5 @@
 const { INVALID_INPUT, FORBIDDEN_ACTION } = require('../constants/errors')
 const articleModel = require('../models/articles')
-const userModel = require('../models/users')
 const { getPermissionLevel } = require('../utils')
 
 function checkArticlePermission(res, tokenPayload, articleId, cb) {
@@ -26,7 +25,7 @@ function checkMessagePermission(res, tokenPayload, messageId, cb) {
 
 const articleController = {
   addArticle: (req, res, next) => {
-    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url , relatedTrail} = req.body
+    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url, relatedTrail } = req.body
     const { tokenPayload } = res.locals
     const authorId = tokenPayload.user_id
     const article = {
@@ -41,7 +40,7 @@ const articleController = {
       end_time,
       time_spent,
       cover_picture_url,
-      gpx_url
+      gpx_url,
     }
 
     for (column in article) {
@@ -62,7 +61,7 @@ const articleController = {
           res.status(201).json({
             success: true,
             message: `OK new article ${articleResult.insertId}`,
-            data: result
+            data: result,
           })
         })
       })
@@ -132,22 +131,7 @@ const articleController = {
   updateArticle: (req, res, next) => {
     const { articleId } = req.params
     const { tokenPayload } = res.locals
-    const {
-      title,
-      content,
-      location,
-      tags,
-      coordinate,
-      altitude,
-      length,
-      departure_time,
-      end_time,
-      time_spent,
-      cover_picture_url,
-      gpx_url,
-      is_deleted,
-      relatedTrail
-    } = req.body
+    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url, is_deleted, relatedTrail } = req.body
     const article = {
       title,
       content,
@@ -172,7 +156,7 @@ const articleController = {
 
       articleModel.update(articleId, article, (err, results) => {
         if (err) return next(err)
-        
+
         if (relatedTrail || relatedTrail === '') {
           articleModel.cancelTrailAssociation(articleId, (err, result) => {
             if (err) return next(err)
@@ -183,7 +167,7 @@ const articleController = {
             })
           }
         }
-        
+
         articleModel.createTagAssociation(articleId, tags, (err, result) => {
           if (err) return next(err)
 
@@ -191,7 +175,7 @@ const articleController = {
             res.json({
               success: true,
               message: `update article`,
-              data: results
+              data: results,
             })
           }
           articleModel.deleteTagAssociationNotInList(articleId, tags, (err, result) => {
@@ -199,7 +183,7 @@ const articleController = {
             res.json({
               success: true,
               message: `OK`,
-              data: result
+              data: result,
             })
           })
         })
@@ -299,35 +283,11 @@ const articleController = {
     })
   },
 
-  relateTrail: (req, res, next) => {
-    const { articleId } = req.params
-    const { trail_id } = req.body
-
-    articleModel.createTrailAssociation(articleId, trail_id, (err, results) => {
-      if (err) return next(err)
-      res.json({
-        success: true,
-        message: `article-${articleId} linked to trail-${trail_id}`,
-        data: results,
-      })
-    })
-  },
-
-  unRelateTrail: (req, res, next) => {
-    const { articleId, trailId } = req.params
-
-    articleModel.cancelTrailAssociation(articleId, trailId, (err, results) => {
-      if (err) return next(err)
-      res.json({
-        success: true,
-        message: `article-${articleId} unlinked to trail-${trailId}`,
-        data: results,
-      })
-    })
-  },
-
   getDeletedArticles: (req, res, next) => {
     const { limit, offset, cursor, search } = req.query
+    const { tokenPayload } = res.locals
+
+    if (getPermissionLevel(tokenPayload, tokenPayload.user_id) < 3) return res.status(403).json(FORBIDDEN_ACTION)
 
     const options = {
       limit: limit || 20,
@@ -354,6 +314,9 @@ const articleController = {
 
   recoverDeletedArticle: (req, res, next) => {
     const { articleId } = req.params
+    const { tokenPayload } = res.locals
+
+    if (getPermissionLevel(tokenPayload, tokenPayload.user_id) < 3) return res.status(403).json(FORBIDDEN_ACTION)
 
     articleModel.recoverDeleted(articleId, (err, results) => {
       if (err) return next(err)

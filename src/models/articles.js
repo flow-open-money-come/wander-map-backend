@@ -21,7 +21,6 @@ function getTrailId(TrailTitle, cb) {
   sendQuery(sql, TrailTitle, cb)
 }
 
-
 function getArticlePaginationSuffix(options) {
   let sql = ''
   const values = []
@@ -151,9 +150,7 @@ const articleModel = {
       const paginationSuffix = getArticlePaginationSuffix(options)
       const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
 
-      sql =
-        query.sql.replace(`GROUP_CONCAT(T.tag_name SEPARATOR ', ')`, `ARTICLEwithTAGS.tag_names`) +
-        ';'
+      sql = query.sql.replace(`GROUP_CONCAT(T.tag_name SEPARATOR ', ')`, `ARTICLEwithTAGS.tag_names`) + ';'
       values = query.values
 
       logger.debug(sql)
@@ -233,10 +230,7 @@ const articleModel = {
     values = Object.values(article).filter((data) => data !== article.coordinate)
     if (values.length > 0) sql += columnNames.join(' = ?, ') + ` = ? `
 
-    if (
-      (article.coordinate?.x || article.coordinate?.x === 0) &&
-      (article.coordinate?.y || article.coordinate?.y === 0)
-    ) {
+    if ((article.coordinate?.x || article.coordinate?.x === 0) && (article.coordinate?.y || article.coordinate?.y === 0)) {
       if (values !== 0) sql += ','
       sql += ` coordinate = ST_PointFromText("POINT(? ?)")`
       values = values.concat([Number(article.coordinate.x), Number(article.coordinate.y)])
@@ -387,8 +381,7 @@ const articleModel = {
     const paginationSuffix = getArticlePaginationSuffix(options)
     const values = [trailId, ...paginationSuffix.values]
 
-    if (/GROUP BY A.article_id/.test(paginationSuffix.sql))
-      sql = sql.replace('GROUP BY A.article_id', '')
+    if (/GROUP BY A.article_id/.test(paginationSuffix.sql)) sql = sql.replace('GROUP BY A.article_id', '')
     sql += paginationSuffix.sql + ';'
     sendQuery(sql, values, cb)
   },
@@ -405,9 +398,9 @@ const articleModel = {
   },
 
   cancelTrailAssociation: (articleId, cb) => {
-      const sql = `DELETE FROM article_trail_map WHERE article_id = ? `
-      const values = [articleId]
-      sendQuery(sql, values, cb)
+    const sql = `DELETE FROM article_trail_map WHERE article_id = ? `
+    const values = [articleId]
+    sendQuery(sql, values, cb)
   },
 
   getAuthorId: (articleId, cb) => {
@@ -443,8 +436,7 @@ const articleModel = {
                     WHERE article_id = ?`
       const values = [articleId].concat(tagIdArray.map((obj) => obj.tag_id))
 
-      if (tagIdArray.length > 0)
-        sql += ` AND tag_id NOT IN (${Array(tagIdArray.length).fill('?').join(', ')})`
+      if (tagIdArray.length > 0) sql += ` AND tag_id NOT IN (${Array(tagIdArray.length).fill('?').join(', ')})`
 
       sql += ';'
       sendQuery(sql, values, cb)
@@ -481,7 +473,7 @@ const articleModel = {
     const sql = `UPDATE articles SET is_deleted = ? WHERE article_id = ?`
     const values = [0, articleId]
     sendQuery(sql, values, cb)
-  }
+  },
 }
 
 module.exports = articleModel
