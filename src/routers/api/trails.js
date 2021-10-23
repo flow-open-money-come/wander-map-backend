@@ -1,18 +1,19 @@
 const trailRouter = require('express').Router()
 const { PATH_ERROR } = require('../../constants/errors')
 const trailsController = require('../../controllers/trails')
+const auth = require('../../middlewares/auth')
 const { paramValidator, postTrailsValidator, paginationAndSearchValidator } = require('../../middlewares/validators')
 
 trailRouter.get('/', paginationAndSearchValidator, trailsController.getAll)
 trailRouter.get('/hot/:Amount', trailsController.getHotTrails)
 
-trailRouter.get('/deleted', paginationAndSearchValidator, trailsController.getDeletedTrails)
-trailRouter.patch('/deleted/:trailId/', paramValidator, trailsController.recoverDeletedTrail)
+trailRouter.get('/deleted', auth, paginationAndSearchValidator, trailsController.getDeletedTrails)
+trailRouter.patch('/deleted/:trailId/', auth, paramValidator, trailsController.recoverDeletedTrail)
 
 trailRouter.get('/:trailId', paramValidator, trailsController.getOne)
-trailRouter.post('/', postTrailsValidator, trailsController.add)
-trailRouter.patch('/:trailId', paramValidator, postTrailsValidator, trailsController.update)
-trailRouter.delete('/:trailId', paramValidator, trailsController.delete)
+trailRouter.post('/', auth, postTrailsValidator, trailsController.add)
+trailRouter.patch('/:trailId', auth, paramValidator, postTrailsValidator, trailsController.update)
+trailRouter.delete('/:trailId', auth, paramValidator, trailsController.delete)
 
 trailRouter.get('/:trailId/articles', paramValidator, paginationAndSearchValidator, trailsController.getArticles)
 

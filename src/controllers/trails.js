@@ -1,5 +1,8 @@
 const trailsModel = require('../models/trails')
 const articleModel = require('../models/articles')
+const { getPermissionLevel } = require('../utils')
+const { FORBIDDEN_ACTION } = require('../constants/errors')
+
 
 const trailsController = {
   getAll: async (req, res, next) => {
@@ -64,8 +67,14 @@ const trailsController = {
 
   add: async (req, res, next) => {
     const content = req.body
+    const { tokenPayload } = res.locals
+    const authorId = tokenPayload.user_id
+
+    if (getPermissionLevel(tokenPayload, authorId) < 3)
+      return res.status(403).json(FORBIDDEN_ACTION)
+    
     try {
-      const results = await trailsModel.add(content)
+      const results = await trailsModel.add(content, authorId)
       res.json({
         success: true,
         message: `add trail-${results.insertId}`,
@@ -79,8 +88,13 @@ const trailsController = {
   update: async (req, res, next) => {
     const { trailId } = req.params
     const content = req.body
+    const { tokenPayload } = res.locals
+    const authorId = tokenPayload.user_id
+    if (getPermissionLevel(tokenPayload, authorId) < 3)
+      return res.status(403).json(FORBIDDEN_ACTION)
+
     try {
-      const results = await trailsModel.update(trailId, content)
+      const results = await trailsModel.update(trailId, content, authorId)
       res.json({
         success: true,
         message: `update trail-${trailId}`,
@@ -93,6 +107,10 @@ const trailsController = {
 
   delete: async (req, res, next) => {
     const { trailId } = req.params
+    const { tokenPayload } = res.locals
+    const authorId = tokenPayload.user_id
+    if (getPermissionLevel(tokenPayload, authorId) < 3)
+      return res.status(403).json(FORBIDDEN_ACTION)
     try {
       const results = await trailsModel.delete(trailId)
       res.json({
@@ -191,6 +209,10 @@ const trailsController = {
 
   getDeletedTrails: async (req, res, next) => {
     const { limit, offset, cursor, search } = req.query
+    const { tokenPayload } = res.locals
+    const authorId = tokenPayload.user_id
+    if (getPermissionLevel(tokenPayload, authorId) < 3)
+      return res.status(403).json(FORBIDDEN_ACTION)
 
     const options = {
       limit,
@@ -219,6 +241,11 @@ const trailsController = {
 
   recoverDeletedTrail: async (req, res, next) => {
     const { trailId } = req.params
+    const { tokenPayload } = res.locals
+    const authorId = tokenPayload.user_id
+    if (getPermissionLevel(tokenPayload, authorId) < 3)
+      return res.status(403).json(FORBIDDEN_ACTION)
+
     try {
       const results = await trailsModel.recoverDeleted(trailId)
       res.json({

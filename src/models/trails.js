@@ -87,12 +87,12 @@ const trailModel = {
     }
   },
 
-  add: async (trailInfo) => {
+  add: async (trailInfo, authorId) => {
     const sql = `INSERT INTO trails(author_id, title, description, location, altitude, length, situation, season, difficulty, coordinate, cover_picture_url, map_picture_url) VALUE (?, ?, ?, ?, ?, ?, ?, ?, ?, ST_PointFromText("POINT(? ?)"), ?, ?)`
     logger.debug(sql)
     try {
       const [rows, fields] = await pool.query(sql, [
-        trailInfo.author_id,
+        authorId,
         trailInfo.title,
         trailInfo.description,
         trailInfo.location,
@@ -104,7 +104,7 @@ const trailModel = {
         Number(trailInfo.coordinateX),
         Number(trailInfo.coordinateY),
         trailInfo.cover_picture_url,
-        trailInfo.map_picture_url,
+        trailInfo.map_picture_url
       ])
       return rows
     } catch (err) {
@@ -112,14 +112,14 @@ const trailModel = {
     }
   },
 
-  update: async (id, trailInfo) => {
+  update: async (id, trailInfo, authorId) => {
     const sql = `UPDATE trails SET author_id = ?, title = ?, description = ?, 
       location = ?, altitude = ?,  length = ?, situation = ? , season = ? , difficulty = ?, coordinate = ST_PointFromText("POINT(? ?)"), cover_picture_url = ?, map_picture_url  = ?
       WHERE trail_id = ?`
     logger.debug(sql)
     try {
       const [rows, fields] = await pool.query(sql, [
-        trailInfo.author_id,
+        authorId,
         trailInfo.title,
         trailInfo.description,
         trailInfo.location,
@@ -132,7 +132,7 @@ const trailModel = {
         Number(trailInfo.coordinateY),
         trailInfo.cover_picture_url,
         trailInfo.map_picture_url,
-        id,
+        id
       ])
       return rows
     } catch (err) {
