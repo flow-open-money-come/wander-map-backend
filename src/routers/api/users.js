@@ -129,7 +129,7 @@ userRouter.get('/refresh', userController.refresh)
  * /api/v1/users:
  *  get:
  *    tags: [Users]
- *    summary: 取得所有使用者資料 - 僅限 role 為 admin
+ *    summary: 取得所有使用者資料 - 僅限管理員
  *    description: 可在 URL 上帶 limit、offset、cursor 取得分頁。limit 預設值 20。offset 與 cursor 都有設的情況下優先使用 cursor。
  *    security:
  *      - accessToken: []
@@ -140,6 +140,9 @@ userRouter.get('/refresh', userController.refresh)
  *    responses:
  *      "200":
  *        description: user data
+ *        headers:
+ *          x-total-count:
+ *            $ref: '#/components/headers/x-total-count'
  *        content:
  *          application/json:
  *            schema:
