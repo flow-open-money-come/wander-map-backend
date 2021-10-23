@@ -116,3 +116,9 @@ components:
             items: number
             format: float
         example: { gt: 1.2, lt: 5 }
+    search:
+      name: search
+      in: query
+      description: 以聯集的方式搜尋關鍵字
+      schema:
+        type: string
