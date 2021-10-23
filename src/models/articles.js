@@ -15,6 +15,12 @@ function getTagId(tags, cb) {
   sendQuery(sql, tags, cb)
 }
 
+function getTrailId(TrailTitle, cb) {
+  if (!TrailTitle) return cb(null, [])
+  const sql = `SELECT trail_id FROM trails WHERE title = ? ;`
+  sendQuery(sql, TrailTitle, cb)
+}
+
 function getArticlePaginationSuffix(options) {
   let sql = ''
   const values = []
@@ -380,15 +386,20 @@ const articleModel = {
     sendQuery(sql, values, cb)
   },
 
-  createTrailAssociation: (articleId, trailId, cb) => {
-    const sql = `INSERT INTO article_trail_map(article_id, trail_id) VALUE (?, ?) `
-    const values = [articleId, trailId]
-    sendQuery(sql, values, cb)
+  createTrailAssociation: (articleId, trailTitle, cb) => {
+    getTrailId(trailTitle, (err, result) => {
+      if (err) return cb(err)
+      if (result.length === 0) return cb(null, [])
+      const trailId = result.map((item) => item.trail_id)
+      const sql = `INSERT IGNORE INTO article_trail_map(article_id, trail_id) VALUE (?, ?) `
+      const values = [articleId, trailId]
+      sendQuery(sql, values, cb)
+    })
   },
 
-  cancelTrailAssociation: (articleId, trailId, cb) => {
-    const sql = `DELETE FROM article_trail_map WHERE article_id = ? AND trail_id = ? `
-    const values = [articleId, trailId]
+  cancelTrailAssociation: (articleId, cb) => {
+    const sql = `DELETE FROM article_trail_map WHERE article_id = ? `
+    const values = [articleId]
     sendQuery(sql, values, cb)
   },
 

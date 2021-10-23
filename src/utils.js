@@ -33,7 +33,7 @@ module.exports = {
 
   getCookieOptions: (expiredAt) => {
     return {
-      path: '/api/v1/users/refresh',
+      path: '/api/v1/users',
       expires: expiredAt,
       signed: process.env.COOKIE_SECRET,
       httpOnly: true,

@@ -1,0 +1,158 @@
+components:
+  schemas:
+    postTrail:
+      type: object
+      required:
+        - title
+        - description
+        - location
+        - altitude
+        - length
+        - situation
+        - season
+        - difficulty
+        - coordinateX
+        - coordinateY
+        - cover_picture_url
+      properties:
+        title:
+          type: string
+          description: 步道標題
+        description:
+          type: string
+          description: 步道簡介
+        location:
+          type: string
+          description: 步道位置 ex 宜蘭縣南澳鄉
+        altitude:
+          type: Integer
+          description: 步道海拔（公尺）
+        length:
+          type: float
+          description: 步道長度（公里）
+        situation:
+          type: string
+          description: 步道狀況
+        season:
+          type: string
+          description: 建議前往季節
+        difficulty:
+          type: string
+          description: 步道難度，新手, 入門, 進階, 挑戰, 困難 四個值
+        coordinateX:
+          type: float
+          description: 步道北緯座標
+        coordinateY:
+          type: float
+          description: 步道東經座標
+        cover_picture_url:
+          type: string
+          description: 步道封面圖連結（前台以 Imgur 方式上傳）
+        map_picture_url:
+          type: string
+          description: 步道路線圖連結（前台以 Imgur 方式上傳）
+      example:
+        title : 小觀音山群峰步道
+        description : 小觀音山是台灣大屯火山群的一群山峰，位於新北市三芝區與台北市北投區交界處，小觀音山主峰高1066公尺...
+        location : 台北市北投區
+        altitude : 1066
+        length : 5.5
+        situation : 箭竹、原始地形
+        season : 四季皆宜
+        difficulty : 進階
+        coordinateX : 25.188702
+        coordinateY : 121.542740
+        cover_picture_url : （img url through Imgur upload)
+        map_picture_url : （img url through Imgur upload)
+    postTrailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+      example:
+        success: true
+        message: add/update trail {trail ID}
+        data:
+         {
+          title : 小觀音山群峰步道,
+          description : 小觀音山是台灣大屯火山群的一群山峰，位於新北市三芝區與台北市北投區交界處，小觀音山主峰高1066公尺...,
+          location : 台北市北投區,
+          altitude : 1066,
+          length : 5.5,
+          situation : 箭竹、原始地形,
+          season : 四季皆宜,
+          difficulty : 進階,
+          coordinateX : 25.188702,
+          coordinateY : 121.542740,
+          cover_picture_url : （img url through Imgur upload),
+          map_picture_url : （img url through Imgur upload)
+         }
+    postTrailComment: 
+      type: object
+      required:
+        - trail_id
+        - author_id
+        - content
+      properties:
+        trail_id:
+          type: integer
+          description: params 步道 ID
+        author_id:
+          type: integer 
+          description: 由 JWT token 帶入之使用者 user_id
+        content:
+          type: integer
+          description: 評論留言內容
+    postTrailCommentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+      example:
+        success: true
+        message: leave trail-${trailId} comment ${content}
+        data: 
+         {
+          fieldCount: 0,
+          affectedRows: 1,
+          insertId: {trailID},
+          info: "",
+          serverStatus: 2,
+          warningStatus: 0
+         }
+    editTrailComment: 
+      type: object
+      required:
+        - comment_id
+        - content
+      properties:
+        comment_id:
+          type: integer
+          description: params 評論 ID
+        content:
+          type: integer
+          description: 評論留言內容
+    editTrailCommentResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message:
+          type: string
+        data:
+          type: object
+      example:
+        success: true
+        message: update comment to ${content}`
+        data: {}

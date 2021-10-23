@@ -1,6 +1,5 @@
 const { INVALID_INPUT, FORBIDDEN_ACTION } = require('../constants/errors')
 const articleModel = require('../models/articles')
-const userModel = require('../models/users')
 const { getPermissionLevel } = require('../utils')
 
 function checkArticlePermission(res, tokenPayload, articleId, cb) {
@@ -26,7 +25,7 @@ function checkMessagePermission(res, tokenPayload, messageId, cb) {
 
 const articleController = {
   addArticle: (req, res, next) => {
-    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url } = req.body
+    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url, relatedTrail } = req.body
     const { tokenPayload } = res.locals
     const authorId = tokenPayload.user_id
     const article = {
@@ -56,11 +55,14 @@ const articleController = {
       articleModel.createTagAssociation(articleResult.insertId, tags, (err, result) => {
         if (err) return next(err)
 
-        userModel
-        res.json({
-          success: true,
-          message: 'OK',
-          data: result,
+        articleModel.createTrailAssociation(articleResult.insertId, relatedTrail, (err, result) => {
+          if (err) return next(err)
+
+          res.status(201).json({
+            success: true,
+            message: `OK new article ${articleResult.insertId}`,
+            data: result,
+          })
         })
       })
     })
@@ -90,7 +92,7 @@ const articleController = {
       if (err) return next(err)
       res.set('x-total-count', results.count).json({
         success: true,
-        message: 'OK',
+        message: 'get articles',
         data: results.result,
       })
     })
@@ -108,7 +110,7 @@ const articleController = {
       if (err) return next(err)
       res.json({
         success: true,
-        message: 'OK',
+        message: 'get hot articles',
         data: results,
       })
     })
@@ -129,7 +131,7 @@ const articleController = {
   updateArticle: (req, res, next) => {
     const { articleId } = req.params
     const { tokenPayload } = res.locals
-    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url, is_deleted } = req.body
+    const { title, content, location, tags, coordinate, altitude, length, departure_time, end_time, time_spent, cover_picture_url, gpx_url, is_deleted, relatedTrail } = req.body
     const article = {
       title,
       content,
@@ -155,29 +157,33 @@ const articleController = {
       articleModel.update(articleId, article, (err, results) => {
         if (err) return next(err)
 
+        if (relatedTrail || relatedTrail === '') {
+          articleModel.cancelTrailAssociation(articleId, (err, result) => {
+            if (err) return next(err)
+          })
+          if (relatedTrail !== '') {
+            articleModel.createTrailAssociation(articleId, relatedTrail, (err, result) => {
+              if (err) return next(err)
+            })
+          }
+        }
+
         articleModel.createTagAssociation(articleId, tags, (err, result) => {
           if (err) return next(err)
 
           if (!tags) {
-            return articleModel.findById(articleId, (err, results) => {
-              if (err) return next(err)
-              res.json({
-                success: true,
-                message: 'OK',
-                data: results,
-              })
+            res.json({
+              success: true,
+              message: `update article`,
+              data: results,
             })
           }
           articleModel.deleteTagAssociationNotInList(articleId, tags, (err, result) => {
             if (err) return next(err)
-
-            articleModel.findById(articleId, (err, results) => {
-              if (err) return next(err)
-              res.json({
-                success: true,
-                message: 'OK',
-                data: results,
-              })
+            res.json({
+              success: true,
+              message: `OK`,
+              data: result,
             })
           })
         })
@@ -195,7 +201,7 @@ const articleController = {
         if (err) return next(err)
         res.json({
           success: true,
-          message: 'OK',
+          message: `delete article ${articleId}`,
           data: results,
         })
       })
@@ -214,7 +220,7 @@ const articleController = {
       if (err) return next(err)
       res.json({
         success: true,
-        message: 'OK',
+        message: 'get message',
         data: results,
       })
     })
@@ -234,7 +240,7 @@ const articleController = {
       if (err) return next(err)
       res.json({
         success: true,
-        message: 'OK',
+        message: 'post message',
         data: results,
       })
     })
@@ -251,7 +257,7 @@ const articleController = {
         if (err) return next(err)
         res.json({
           success: true,
-          message: 'OK',
+          message: 'delete message',
           data: results,
         })
       })
@@ -270,42 +276,18 @@ const articleController = {
         if (err) return next(err)
         res.json({
           success: true,
-          message: 'OK',
+          message: 'update message',
           data: results,
         })
       })
     })
   },
 
-  relateTrail: (req, res, next) => {
-    const { articleId } = req.params
-    const { trail_id } = req.body
-
-    articleModel.createTrailAssociation(articleId, trail_id, (err, results) => {
-      if (err) return next(err)
-      res.json({
-        success: true,
-        message: `article-${articleId} linked to trail-${trail_id}`,
-        data: results,
-      })
-    })
-  },
-
-  unRelateTrail: (req, res, next) => {
-    const { articleId, trailId } = req.params
-
-    articleModel.cancelTrailAssociation(articleId, trailId, (err, results) => {
-      if (err) return next(err)
-      res.json({
-        success: true,
-        message: `article-${articleId} unlinked to trail-${trailId}`,
-        data: results,
-      })
-    })
-  },
-
   getDeletedArticles: (req, res, next) => {
     const { limit, offset, cursor, search } = req.query
+    const { tokenPayload } = res.locals
+
+    if (getPermissionLevel(tokenPayload, tokenPayload.user_id) < 3) return res.status(403).json(FORBIDDEN_ACTION)
 
     const options = {
       limit: limit || 20,
@@ -332,6 +314,9 @@ const articleController = {
 
   recoverDeletedArticle: (req, res, next) => {
     const { articleId } = req.params
+    const { tokenPayload } = res.locals
+
+    if (getPermissionLevel(tokenPayload, tokenPayload.user_id) < 3) return res.status(403).json(FORBIDDEN_ACTION)
 
     articleModel.recoverDeleted(articleId, (err, results) => {
       if (err) return next(err)

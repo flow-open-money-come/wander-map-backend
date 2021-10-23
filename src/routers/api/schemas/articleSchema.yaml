@@ -1,0 +1,169 @@
+components:
+  schemas:
+    postArticle:
+      type: object
+      required:
+        - title
+        - content
+      properties:
+        title:
+          type: string
+          description: 心得的標題
+          example: testTitle
+        content:
+          type: string
+          description: 心得的內容
+          example: testContent
+        relatedTrail:
+          type: string
+          description: 欲關聯的步道名稱
+          example: 松羅步道
+        location:
+          type: string
+          description: 出遊心得所在的行政區
+          example: 台北市大安區
+        coordinate[x]:
+          type: number
+          format: double
+          description: 地點的座標經度
+          example: 122
+        coordinate[y]:
+          type: number
+          format: double
+          description: 地點的座標緯度
+          example: 23
+        altitude:
+          type: integer
+          description: 海拔高度（公尺）
+          example: 500
+        length:
+          type: integer
+          description: 步道長度（公里）
+          example: 3
+        departure_time:
+          type: string
+          format: date
+          description: 出發的日期。格式為 yyyy:mm:dd hh:mm:ss
+          example: 2021-11-22
+        end_time:
+          type: string
+          format: date
+          description: 結束的日期。格式為 yyyy:mm:dd hh:mm:ss
+          example: 2021-11-23
+        time_spent:
+          type: integer
+          description: 所花費的時間（小時）
+          example: 4
+        cover_picture_url:
+          type: string
+          description: 封面圖的網址
+        gpx_url:
+          type: string
+          description: GPX 檔案的網址
+        tags:
+          type: array
+          description: 如果不要新增 tag 就不填或填入 []。如果要新增多個就放多個 tags=value。
+          example:
+            - 一日
+            - 多日
+            - 海景
+            - 夜景
+            - 山景
+            - 城市景色
+            - 賞花
+            - 稀有動植物
+            - 有水源
+            - 危險地形
+            - 需專業裝備
+            - 登山小白體驗
+            - 專業老手分享
+            - GPX
+    editArticle:
+      type: object
+      properties:
+        title:
+          type: string
+          description: 心得的標題
+          example: testTitle
+        content:
+          type: string
+          description: 心得的內容
+          example: testContent
+        relatedTrail:
+          type: string
+          description: 欲關聯的步道名稱
+          example: 松羅步道
+        location:
+          type: string
+          description: 出遊心得所在的行政區
+          example: 台北市大安區
+        coordinate[x]:
+          type: number
+          format: double
+          description: 地點的座標經度
+          example: 122
+        coordinate[y]:
+          type: number
+          format: double
+          description: 地點的座標緯度
+          example: 23
+        altitude:
+          type: integer
+          description: 海拔高度（公尺）
+          example: 500
+        length:
+          type: integer
+          description: 步道長度（公里）
+          example: 3
+        departure_time:
+          type: string
+          format: date
+          description: 出發的日期。格式為 yyyy:mm:dd hh:mm:ss
+          example: 2021-11-22
+        end_time:
+          type: string
+          format: date
+          description: 結束的日期。格式為 yyyy:mm:dd hh:mm:ss
+          example: 2021-11-23
+        time_spent:
+          type: integer
+          description: 所花費的時間（小時）
+          example: 4
+        cover_picture_url:
+          type: string
+          description: 封面圖的網址
+        gpx_url:
+          type: string
+          description: GPX 檔案的網址
+        tags:
+          type: array
+          description: 如果不要新增 tag 就不填或填入 []。如果要新增多個就放多個 tags=value。
+          example:
+            - 一日
+            - 多日
+            - 海景
+            - 夜景
+            - 山景
+            - 城市景色
+            - 賞花
+            - 稀有動植物
+            - 有水源
+            - 危險地形
+            - 需專業裝備
+            - 登山小白體驗
+            - 專業老手分享
+            - GPX
+    postMessage:
+      type: object
+      properties:
+        content:
+          type: string
+          description: 留言內容
+          example: 有水源確切的座標嗎?
+    relateTrail:
+      type: object
+      properties:
+        trail_id:
+          type: integer
+          description: 欲關聯的步道 id
+          example: 1
