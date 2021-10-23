@@ -1,8 +1,8 @@
 const trailRouter = require('express').Router()
 const { PATH_ERROR } = require('../../constants/errors')
 const trailsController = require('../../controllers/trails')
+const auth = require('../../middlewares/auth')
 const { paramValidator, postTrailsValidator, paginationAndSearchValidator } = require('../../middlewares/validators')
-
 
 /**
  * @swagger
@@ -10,7 +10,7 @@ const { paramValidator, postTrailsValidator, paginationAndSearchValidator } = re
  *  get:
  *    tags: [Trails]
  *    summary: 取得所有步道資料
- *    
+ *
  *    description: 可在 URL 上帶 limit、offset、cursor、location、altitude、length、difficult、search。limit 預設值 20。offset 與 cursor 都有設的情況下優先使用 cursor。其餘作為條件的篩選與搜尋。
  *    parameters:
  *      - $ref: '#/components/parameters/limit'

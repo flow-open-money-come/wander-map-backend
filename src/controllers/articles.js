@@ -59,7 +59,7 @@ const articleController = {
         articleModel.createTrailAssociation(articleResult.insertId, relatedTrail, (err, result) => {
           if (err) return next(err)
 
-          res.json({
+          res.status(201).json({
             success: true,
             message: `OK new article ${articleResult.insertId}`,
             data: result
@@ -93,7 +93,7 @@ const articleController = {
       if (err) return next(err)
       res.set('x-total-count', results.count).json({
         success: true,
-        message: 'OK',
+        message: 'get articles',
         data: results.result,
       })
     })
@@ -111,7 +111,7 @@ const articleController = {
       if (err) return next(err)
       res.json({
         success: true,
-        message: 'OK',
+        message: 'get hot articles',
         data: results,
       })
     })
@@ -190,7 +190,7 @@ const articleController = {
           if (!tags) {
             res.json({
               success: true,
-              message: `OK`,
+              message: `update article`,
               data: results
             })
           }
@@ -217,7 +217,7 @@ const articleController = {
         if (err) return next(err)
         res.json({
           success: true,
-          message: 'OK',
+          message: `delete article ${articleId}`,
           data: results,
         })
       })
@@ -236,7 +236,7 @@ const articleController = {
       if (err) return next(err)
       res.json({
         success: true,
-        message: 'OK',
+        message: 'get message',
         data: results,
       })
     })
@@ -256,7 +256,7 @@ const articleController = {
       if (err) return next(err)
       res.json({
         success: true,
-        message: 'OK',
+        message: 'post message',
         data: results,
       })
     })
@@ -273,7 +273,7 @@ const articleController = {
         if (err) return next(err)
         res.json({
           success: true,
-          message: 'OK',
+          message: 'delete message',
           data: results,
         })
       })
@@ -292,7 +292,7 @@ const articleController = {
         if (err) return next(err)
         res.json({
           success: true,
-          message: 'OK',
+          message: 'update message',
           data: results,
         })
       })
