@@ -1,30 +1,85 @@
 # wander-map-backend
 
-## 簡介
+[![badge](https://img.shields.io/badge/API%20Documentation-OK-brightgreen)](https://hackmd.io/@FPgogo/H1l8ogI-Y/https%3A%2F%2Fhackmd.io%2FGMJP6yXKQXCXAT4gDXsJPQ)
+[![badge](https://img.shields.io/badge/Database%20Structure-OK-brightgreen)](https://dbdiagram.io/d/61386313825b5b0146f81dd5)
 
-這是 wander-map 的 api server。使用 express 作為 web 框架、MySQL 儲存資料。
+> *Wander where to go? Wandermap!*
 
-提供驗證使用者註冊登入、心得與步道的 CRUD 等功能。
+## 專案簡介
 
-## 環境建置
+提供戶外行程路線地點的檢視以及記錄心得行程的開放論壇平台。其中又以健行筆記與選山步道的部份頁面作為功能與頁面的參考。再以地圖搜尋為特色，主打此功能增加差異性，改善使用者體驗。
+
+提供一個開放的交流平台。使用者可以檢視閱覽路線及地點詳細的資訊，並且分享自己的行程記錄。
+
+### Pages
+
+[📙 WANDER MAP 說明書](https://hackmd.io/eD_eEfrGTy6BN5RsBHkjaw?view)
+
+[📜 API 文件 | HackMD](https://hackmd.io/GMJP6yXKQXCXAT4gDXsJPQ?view)
+
+[📊 資料庫關聯圖 | dbdiagram](https://dbdiagram.io/d/61386313825b5b0146f81dd5)
+
+:octocat: [前端 repository](https://github.com/flow-open-money-come/wander-map-frontend)
+
+:octocat: [後端 repository](https://github.com/flow-open-money-come/wander-map-backend)
+
+## 主要功能
+
+作為 wander-map 的後端專案。使用 express 作為 web 框架、MySQL 儲存資料。
+
+### 使用者 API
+
+使用者註冊登入後，會得到 member 身分。即有權限可以對心得、步道做按讚、收藏的動作。而管理員（admin）可以改動其他會員的權限、查看所有使用者資料。會員身分改為停權（suspended）後，能做的操作與未註冊者無異。
+
+使用者底下有自己的 todo list，只有本人和管理員看得到能做 CRUD。希望提供使用者在行前準備時，有自己建立的清單可以清點裝備。
+
+### 步道 API
+
+只有管理員能新增、更新、刪除步道。一般使用者只能查詢、收藏步道、針對步道做評論。
+
+資料來源為 [林務局開放資料](https://recreation.forest.gov.tw/Service/OpenData)。取得所有步道時，提供以海拔高度、步道長度、難度、地點、關鍵字篩選後的搜尋結果。也提供 cursor、offset/limit 兩種分頁功能，在回傳的 http header 帶有 x-total-count 表示此搜尋條件下的資料總筆數，使前端能自製分頁。
+
+### 心得 API
+
+管理員可以做所有操作。會員可以對自己的心得做所有 CRUD 操作，也能對其他心得按讚留言。
+
+發布文章時可填寫 tags 欄位，在取得所有心得時可針對特定 tag 做搜尋。提供 cursor、offset/limit 兩種分頁功能，在回傳的 http header 帶有 x-total-count 表示此搜尋條件下的資料總筆數，使前端能自製分頁。
+
+### JWT & Session/cookie
+
+登入成功時時產生 JWT token，方便前端 react app 取得使用者資料，減少與伺服器連線次數。過期時間較短，預設為 1 小時。
+
+同時將產生 refresh token，以 cookie 形式存在瀏覽器，作為 JWT token 過期時，使用者不需再次登入即可取得新 JWT token 的機制。有設定 httpOnly 等屬性以提高安全性。過期時間較長，預設為 1 個月。
+
+### API 測試
+
+利用 swagger 產生符合 OpenAPI 規範的文件，並建立測試頁面。方便開發者快速了解、測試 API。
+
+### log
+
+收到 request、發出 SQL query 與遇到錯誤時，將訊息寫入 `/logs` 路徑下，提供開發者除錯。
+
+## 如何執行
+
+### 環境建置
 
 1. 把 `.env.example` 改名成 `.env`。打開檔案填入等號後面的值。
 2. `$ npm install`：安裝所需套件。
 3. ~~`$ npm run build`：在 database 建立所需的 table。~~
 
-## 開發
+### 開發
 
 `$ npm run start`：運行應用程式。
 
 `$ npm run dev`：測試用，程式碼變動時會自動重啟應用程式。
 
-## 部署
+### 部署
 
 由於 refresh token 是以 `SameSite=None; Secure` 的 cookie 傳送，所以正式運行服務需要申請 SSL 憑證。
 
 獲得 SSL 的未加密私鑰與憑證後，將檔案路徑設定在 `.env` 的 `SSL_KEY`、`SSL_CERTIFICATE`。之後 `$ npm run dev`、`$ npm run start` 都會自動啟用 https 伺服器。
 
-### 用 [certbot](https://certbot.eff.org/) 申請 SSL 憑證
+#### 用 [certbot](https://certbot.eff.org/) 申請 SSL 憑證
 
 步驟可參考 certbot [官網](https://certbot.eff.org/lets-encrypt/ubuntufocal-webproduct) 或 [Will 保哥的文章](https://blog.miniasp.com/post/2021/05/09/Create-SSL-TLS-certificates-from-LetsEncrypt-using-Certbot-2)。
 
@@ -43,15 +98,15 @@
 9. 將金鑰與憑證的路徑填入 `.env` 檔案。範例為 `SSL_KEY=/etc/letsencrypt/live/www.your-domain.com.tw/privkey.pem`、`SSL_CERTIFICATE=/etc/letsencrypt/live/www.your-domain.com.tw/fullchain.pem`。
 10. `$ sudo certbot renew --webroot --dry-run`，確認排程自動更新。
 
-## Docker 部署(deprecate)
+### Docker 部署(deprecate)
 
 還沒寫先別用。
 
-### 安裝 docker
+#### 安裝 docker
 
-### 安裝 docker-compose
+#### 安裝 docker-compose
 
-### 執行
+#### 執行
 
 `$ docker build -t <image_name> .`：從 Dockerfile 建立 image。
 
@@ -115,61 +170,78 @@
     └── utils.js                       # 可重複利用的函式們
 ```
 
-## 使用的函式庫
+## 使用工具
 
-### [express](https://expressjs.com/)
+|套件|敘述|
+|:--:|:--:|
+|[express](https://expressjs.com/)|Node.js 的 web 框架|
+|[express-validator](https://www.npmjs.com/package/express-validator)|客製化驗證使用者輸入的 middleware|
+|[cors](https://www.npmjs.com/package/cors)|處理 cross origin resource sharing 相關設定的 middleware|
+|[cookie-parser](https://www.npmjs.com/package/cookie-parser)|解析 header 的 signed cookie 並放入 `req.signedCookies` 變數|
+|[dotenv](https://www.npmjs.com/package/dotenv)|在 `.env` 設置環境變數供程式碼存取|
+|[nodemon](https://nodemon.io/)|開發測試用套件，在程式碼改動時自動重啟應用程式|
+|[swagger-jsdoc](https://www.npmjs.com/package/swagger-jsdoc)|產生符合 [OpenAPI (Swagger) specification](https://swagger.io/specification/) 的文件|
+|[swagger-ui-express](https://www.npmjs.com/package/swagger-ui-express)|用符合 OpenAPI 規範的文件產生 UI 介面，提供 API 測試|
+|[winston](https://www.npmjs.com/package/winston)|提供客製化 logger|
+|[winston-daily-rotate-file](https://www.npmjs.com/package/winston-daily-rotate-file)|log rotation|
+|[jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)|產生及認證 JWT 合法性|
+|[bcrypt](https://www.npmjs.com/package/bcrypt)|將密碼加鹽雜湊|
+|[mysql2](https://www.npmjs.com/package/mysql2#history-and-why-mysql2)|連線操作資料庫|
 
-Node.js 的 web 框架。
+|其他|敘述|
+|:--:|:--:|
+|AWS EC2|後端專案部署|
+|prettier|自動排版|
+|pm2|daemon process manager |
+|certbot|申請 SSL 憑證|
+|~~docker~~|~~部署~~|
 
-### [express-validator](https://www.npmjs.com/package/express-validator)
+## Author
 
-驗證使用者輸入的 middleware。
+👤 [@cmtilo](https://github.com/cmtilo)
+```markdown
+ . ＿＿ ∧ ∧             
+／＼   (*ﾟ∀ﾟ)＼      專案構想、wireframe 繪製、
+＼／|￣￣∪ ∪￣|＼   前端（會員個人頁面（公開＆會員）、
+ ＼|    Cmt   |     新增步道頁面、新增心得頁面
+     ￣￣￣￣￣
+```
 
-### [cors](https://www.npmjs.com/package/cors)
+👤 [@ddylanlin](https://github.com/ddylanlin)
+```markdown
+ . ＿＿ ∧ ∧             
+／＼   (*ﾟ∀ﾟ)＼      專案雛形發想、wireframe 繪製、
+＼／|￣￣∪ ∪￣|＼   前端（管理員後台、單一步道頁面）、
+ ＼|   Dylan  |     後端（trail API、article API、部署）
+     ￣￣￣￣￣
+```
 
-處理 cross origin resource sharing 相關設定的 middleware。
+👤 [@torai55](https://github.com/torai55)
+```markdown
+ . ＿＿ ∧ ∧             
+／＼   (*ﾟ∀ﾟ)＼      專案構想、資料庫規劃
+＼／|￣￣∪ ∪￣|＼   後端（user API、article API、trail API、
+ ＼|   Torai  |     權限控制、logger、API 文件、部署）
+     ￣￣￣￣￣
+```
 
-### [dotenv](https://www.npmjs.com/package/dotenv)
+👤 [@WenYHsieh](https://github.com/WenYHsieh)
+```markdown
+ . ＿＿ ∧ ∧             
+／＼   (*ﾟ∀ﾟ)＼      專案構想、wireframe 繪製、
+＼／|￣￣∪ ∪￣|＼   前端 （功能測試（google map, 圖片上傳, ckeditor 串接）、
+ ＼|     Yu   |     首頁、全部步道頁面、會員系統、部署）
+     ￣￣￣￣￣
+```
 
-在 `.env` 設置環境變數並在程式碼中存取。
-
-### [nodemon](https://nodemon.io/)
-
-測試用套件，在程式碼改動時自動重啟應用程式。
-
-### swagger
-
-產生 API 測試頁面。
-
-[swagger-jsdoc](https://www.npmjs.com/package/swagger-jsdoc)：產生符合 [OpenAPI (Swagger) specification](https://swagger.io/specification/) 的文件。  
-[swagger-ui-express](https://www.npmjs.com/package/swagger-ui-express)：用符合 OpenAPI 規範的文件產生 UI 介面。
-
-### winston
-
-[winston](https://www.npmjs.com/package/winston)： logger library  
-[winston-daily-rotate-file](https://www.npmjs.com/package/winston-daily-rotate-file)：log rotation
-
-### [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken)
-
-產生及認證 JWT 合法性。
-
-### [bcrypt](https://www.npmjs.com/package/bcrypt)
-
-將密碼雜湊。
-
-### [mysql2](https://www.npmjs.com/package/mysql2#history-and-why-mysql2)
-
-連線操作資料庫。
-
-## 相關連結
-
-[WANDER MAP 說明書](https://hackmd.io/eD_eEfrGTy6BN5RsBHkjaw?view)
-
-[API 文件](https://hackmd.io/GMJP6yXKQXCXAT4gDXsJPQ?view)
-
-[前端 GitHub](https://github.com/flow-open-money-come/wander-map-frontend)
-
-[後端 GitHub](https://github.com/flow-open-money-come/wander-map-backend)
+👤 [@yymarlerr](https://github.com/yymarlerr)
+```markdown
+ . ＿＿ ∧ ∧             
+／＼   (*ﾟ∀ﾟ)＼      專案雛形發想、專案構想、wireframe 繪製、
+＼／|￣￣∪ ∪￣|＼   前端 （單一心得頁面、全部心得頁面）、
+ ＼|    Ader  |     後端（article API）
+     ￣￣￣￣￣
+```
 
 ## License
 

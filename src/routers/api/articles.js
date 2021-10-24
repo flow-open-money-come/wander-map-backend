@@ -90,9 +90,15 @@ articleRouter.get('/hot', paginationAndSearchValidator, articleController.getHot
  *    tags: [Articles]
  *    summary: 取得所有已刪除心得
  *    description: 取得所有已刪除心得
+ *    security:
+ *      - accessToken: []
  *    responses:
  *      "200":
  *        description: get all deleted articles
+ *      "401":
+ *        $ref: '#/components/responses/unauthorizedError'
+ *      "403":
+ *        $ref: '#/components/responses/forbiddenAction'
  *      "500":
  *        $ref: '#/components/responses/internalError'
  */
@@ -105,6 +111,8 @@ articleRouter.get('/deleted', auth, paginationAndSearchValidator, articleControl
  *    tags: [Articles]
  *    summary: 恢復某已刪除的心得
  *    description: 恢復某已刪除的心得
+ *    security:
+ *      - accessToken: []
  *    parameters:
  *      - name: articleId
  *        in: path
@@ -113,6 +121,10 @@ articleRouter.get('/deleted', auth, paginationAndSearchValidator, articleControl
  *    responses:
  *      "200":
  *        description: recover article-${articleId}
+ *      "401":
+ *        $ref: '#/components/responses/unauthorizedError'
+ *      "403":
+ *        $ref: '#/components/responses/forbiddenAction'
  *      "500":
  *        $ref: '#/components/responses/internalError'
  */
