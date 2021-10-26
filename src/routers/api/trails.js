@@ -183,7 +183,7 @@ trailRouter.post('/', auth, postTrailsValidator, trailsController.add)
  *      "500":
  *        $ref: '#/components/responses/internalError'
  */
-trailRouter.patch('/{trailId}', auth, paramValidator, postTrailsValidator, trailsController.update)
+trailRouter.patch('/:trailId', auth, paramValidator, postTrailsValidator, trailsController.update)
 
 /**
  *  @swagger
