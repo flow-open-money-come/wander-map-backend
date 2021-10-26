@@ -67,7 +67,7 @@
 
 1. 把 `.env.example` 改名成 `.env`。打開檔案填入等號後面的值。
 2. `$ npm install`：安裝所需套件。
-3. ~~`$ npm run build`：在 database 建立所需的 table。~~
+3. `$ npm run build`：在 database 建立所需的 table，並帶入 tags、trails 兩張 table 的資料。
 
 ### 開發
 
@@ -135,7 +135,9 @@
 ├── package.json
 ├── LICENSE
 ├── README.md
-├── logs
+├── logs                               # 存放 log 的資料夾（app 會自動建立）
+├── databaseStructure.sql              # 建立資料庫 table 的 sql
+├── tagAndTrailData.sql                # tags 與 trails 兩張 table 資料的 sql
 └── src                                # 程式碼在此 ฅ•ω•ฅ
     ├── constants
     │   ├── errors.js                  # 伺服器在特定狀況下回應的錯誤訊息
@@ -148,6 +150,7 @@
     ├── db.js                          # 設定資料庫連線
     ├── index.js                       # application server 進入點
     ├── logger.js                      # logger 的設定
+    ├── build.js                       # npm run build 建立資料庫架構及匯入資料
     ├── middlewares                    # 自訂的 middlewares
     │   ├── auth.js                    # 檢查 jwt 是否被竄改或過期，沒問題就放進 res.locals.tokenPayload 變數中
     │   ├── logRequest.js              # 把收到的請求寫入 log

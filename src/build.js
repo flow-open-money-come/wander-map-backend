@@ -38,7 +38,7 @@ readFilePromise(path.resolve(__dirname, '../databaseStructure.sql'), 'utf8')
   })
   .then((_) => stdout.write('done\n'))
   .catch((e) => {
-    stdout.end('error')
+    stdout.write('error\n')
     console.error(e)
   })
   .finally(() => conn.end())
