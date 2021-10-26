@@ -72,7 +72,7 @@ trailRouter.get('/hot/:Amount', trailsController.getHotTrails)
  *      "500":
  *        $ref: '#/components/responses/internalError'
  */
-trailRouter.get('/deleted', paginationAndSearchValidator, trailsController.getDeletedTrails)
+trailRouter.get('/deleted', auth, paginationAndSearchValidator, trailsController.getDeletedTrails)
 
 /**
  *  @swagger
