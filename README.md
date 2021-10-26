@@ -3,7 +3,7 @@
 [![badge](https://img.shields.io/badge/API%20Documentation-OK-brightgreen)](https://hackmd.io/@FPgogo/H1l8ogI-Y/https%3A%2F%2Fhackmd.io%2FGMJP6yXKQXCXAT4gDXsJPQ)
 [![badge](https://img.shields.io/badge/Database%20Structure-OK-brightgreen)](https://dbdiagram.io/d/61386313825b5b0146f81dd5)
 
-> *Wander where to go? Wandermap!*
+> _Wandering where to go? Wandermap!_
 
 ## 專案簡介
 
@@ -13,7 +13,7 @@
 
 ### Pages
 
-[📙 WANDER MAP 說明書](https://hackmd.io/eD_eEfrGTy6BN5RsBHkjaw?view)
+[📙 WANDER MAP 說明書 | HackMD](https://hackmd.io/eD_eEfrGTy6BN5RsBHkjaw?view)
 
 [📜 API 文件 | HackMD](https://hackmd.io/GMJP6yXKQXCXAT4gDXsJPQ?view)
 
@@ -49,9 +49,11 @@
 
 登入成功時時產生 JWT token，方便前端 react app 取得使用者資料，減少與伺服器連線次數。過期時間較短，預設為 1 小時。
 
-同時將產生 refresh token，以 cookie 形式存在瀏覽器，作為 JWT token 過期時，使用者不需再次登入即可取得新 JWT token 的機制。有設定 httpOnly 等屬性以提高安全性。過期時間較長，預設為 1 個月。
+同時將產生 refresh token，以 cookie 形式儲存在瀏覽器。作為 JWT token 過期時，使用者不需再次登入即可取得新 JWT 的機制。有設定 httpOnly 等屬性以提高安全性。過期時間較長，預設為 1 個月。
 
 ### API 測試
+
+> 測試連結：https://api.wandermap.tw/api/v1/test
 
 利用 swagger 產生符合 OpenAPI 規範的文件，並建立測試頁面。方便開發者快速了解、測試 API。
 
@@ -69,9 +71,9 @@
 
 ### 開發
 
-`$ npm run start`：運行應用程式。
+* `$ npm run start`：運行應用程式。
 
-`$ npm run dev`：測試用，程式碼變動時會自動重啟應用程式。
+* `$ npm run dev`：測試用，程式碼變動時會自動重啟應用程式。
 
 ### 部署
 
@@ -94,13 +96,13 @@
 5. `$ sudo ln -s /snap/bin/certbot /usr/bin/certbot`：確保可以執行 `$ certbot` 指令。
 6. `$ cd <path_to_project_directory>` 進入專案根目錄，創資料夾 `$ mkdir ./src/public`。
 7. `$ npm run start` 或 `$ npm run dev` 把伺服器跑起來。
-8. `$ sudo certbot certonly --webroot`：用 certbot 申請憑證。接下來有一系列問答，根據需求填入值，可參考保哥文章。在 `Input the webroot for www.your-domain.com.tw:` 這個問題填入 `<path_to_project_directory>/src/public`。
+8. `$ sudo certbot certonly --webroot`：用 certbot 申請憑證。接下來有一系列問答，根據需求填入值，可參考 [Will 保哥的文章](https://blog.miniasp.com/post/2021/05/09/Create-SSL-TLS-certificates-from-LetsEncrypt-using-Certbot-2)。在 `Input the webroot for www.your-domain.com.tw:` 這個問題填入 `<path_to_project_directory>/src/public`。
 9. 將金鑰與憑證的路徑填入 `.env` 檔案。範例為 `SSL_KEY=/etc/letsencrypt/live/www.your-domain.com.tw/privkey.pem`、`SSL_CERTIFICATE=/etc/letsencrypt/live/www.your-domain.com.tw/fullchain.pem`。
 10. `$ sudo certbot renew --webroot --dry-run`，確認排程自動更新。
 
-### Docker 部署(deprecate)
+### Docker 部署(coming soon)
 
-還沒寫先別用。
+功能尚在撰寫中。
 
 #### 安裝 docker
 
@@ -124,7 +126,7 @@
 ├── .env.example                       # 環境變數的範例
 ├── .git
 ├── .gitignore
-├── .dockerignore                      # docker 部署時需要的檔案們（久沒更新先別用）
+├── .dockerignore                      # docker 部署時需要的檔案們（新功能即將上線，請耐心等候）
 ├── Dockerfile
 ├── docker-compose.dev.yml
 ├── docker-compose.yml
