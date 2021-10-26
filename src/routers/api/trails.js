@@ -96,7 +96,7 @@ trailRouter.get('/deleted', auth, paginationAndSearchValidator, trailsController
  *      "500":
  *        $ref: '#/components/responses/internalError'
  */
-trailRouter.patch('/deleted/:trailId/', paramValidator, trailsController.recoverDeletedTrail)
+trailRouter.patch('/deleted/:trailId/', auth, paramValidator, trailsController.recoverDeletedTrail)
 
 /**
  *  @swagger
@@ -147,7 +147,7 @@ trailRouter.get('/:trailId', paramValidator, trailsController.getOne)
  *      "500":
  *        $ref: '#/components/responses/internalError'
  */
-trailRouter.post('/', postTrailsValidator, trailsController.add)
+trailRouter.post('/', auth, postTrailsValidator, trailsController.add)
 
 /**
  *  @swagger
@@ -183,7 +183,7 @@ trailRouter.post('/', postTrailsValidator, trailsController.add)
  *      "500":
  *        $ref: '#/components/responses/internalError'
  */
-trailRouter.patch('/{trailId}', paramValidator, postTrailsValidator, trailsController.update)
+trailRouter.patch('/{trailId}', auth, paramValidator, postTrailsValidator, trailsController.update)
 
 /**
  *  @swagger
@@ -207,7 +207,7 @@ trailRouter.patch('/{trailId}', paramValidator, postTrailsValidator, trailsContr
  *      "500":
  *        $ref: '#/components/responses/internalError'
  */
-trailRouter.delete('/:trailId', paramValidator, trailsController.delete)
+trailRouter.delete('/:trailId', auth, paramValidator, trailsController.delete)
 
 /**
  *  @swagger
