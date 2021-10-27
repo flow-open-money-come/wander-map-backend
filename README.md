@@ -3,21 +3,27 @@
 [![badge](https://img.shields.io/badge/API%20Documentation-OK-brightgreen)](https://hackmd.io/@FPgogo/H1l8ogI-Y/https%3A%2F%2Fhackmd.io%2FGMJP6yXKQXCXAT4gDXsJPQ)
 [![badge](https://img.shields.io/badge/Database%20Structure-OK-brightgreen)](https://dbdiagram.io/d/61386313825b5b0146f81dd5)
 
-> _Wandering where to go? Wandermap!_
+> _Wondering where to go? [Wandermap](https://wandermap.netlify.app)!_
 
 ## 專案簡介
 
-提供戶外行程路線地點的檢視以及記錄心得行程的開放論壇平台。其中又以健行筆記與選山步道的部份頁面作為功能與頁面的參考。再以地圖搜尋為特色，主打此功能增加差異性，改善使用者體驗。
+提供戶外行程路線地點的檢視以及記錄心得行程的開放論壇平台。其中又以 [健行筆記](https://hiking.biji.co/) 與 [臺灣山林悠遊網](https://recreation.forest.gov.tw/) 的部份頁面作為功能與頁面的參考。再以地圖搜尋為特色，主打此功能增加差異性，改善使用者體驗。
 
 提供一個開放的交流平台。使用者可以檢視閱覽路線及地點詳細的資訊，並且分享自己的行程記錄。
 
 ### Pages
+
+[🛤Demo](https://wandermap.netlify.app)
 
 [📙 WANDER MAP 說明書 | HackMD](https://hackmd.io/eD_eEfrGTy6BN5RsBHkjaw?view)
 
 [📜 API 文件 | HackMD](https://hackmd.io/GMJP6yXKQXCXAT4gDXsJPQ?view)
 
 [📊 資料庫關聯圖 | dbdiagram](https://dbdiagram.io/d/61386313825b5b0146f81dd5)
+
+[📚 功能架構圖 | Figma](https://www.figma.com/file/DYDg1Xje14r4k0zkGqD0tC/WanderMap-%E5%8A%9F%E8%83%BD%E6%9E%B6%E6%A7%8B%E5%9C%96?node-id=0%3A1)
+
+[📖 User flow | whimsical](https://whimsical.com/user-flow-KZZHcksrFpVsZERH85MLYc)
 
 :octocat: [前端 repository](https://github.com/flow-open-money-come/wander-map-frontend)
 
@@ -100,7 +106,7 @@
 9. 將金鑰與憑證的路徑填入 `.env` 檔案。範例為 `SSL_KEY=/etc/letsencrypt/live/www.your-domain.com.tw/privkey.pem`、`SSL_CERTIFICATE=/etc/letsencrypt/live/www.your-domain.com.tw/fullchain.pem`。
 10. `$ sudo certbot renew --webroot --dry-run`，確認排程自動更新。
 
-### Docker 部署(coming soon)
+### Docker 部署 (coming soon)
 
 功能尚在撰寫中。
 
