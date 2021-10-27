@@ -47,7 +47,7 @@ const userController = {
       const cookieOptions = getCookieOptions(expiredAt)
       let refreshToken = await generateRefreshToken()
 
-      while ((await refreshTokenModel.findByToken(refreshToken).length) > 0) {
+      while ((await refreshTokenModel.findByToken(refreshToken)).length > 0) {
         refreshToken = await generateRefreshToken()
       }
       await refreshTokenModel.save(user_id, refreshToken, expiredAt)
@@ -91,7 +91,7 @@ const userController = {
       const cookieOptions = getCookieOptions(expiredAt)
       let refreshToken = await generateRefreshToken()
 
-      while ((await refreshTokenModel.findByToken(refreshToken).length) > 0) {
+      while ((await refreshTokenModel.findByToken(refreshToken)).length > 0) {
         refreshToken = await generateRefreshToken()
       }
       await refreshTokenModel.save(user_id, refreshToken, expiredAt)
@@ -133,7 +133,7 @@ const userController = {
       const cookieOptions = getCookieOptions(expiredAt)
       let newRefreshToken = await generateRefreshToken()
 
-      while ((await refreshTokenModel.findByToken(refreshToken).length) > 0) {
+      while ((await refreshTokenModel.findByToken(refreshToken)).length > 0) {
         refreshToken = await generateRefreshToken()
       }
 
