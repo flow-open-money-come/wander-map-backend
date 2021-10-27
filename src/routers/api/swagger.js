@@ -24,7 +24,7 @@ const options = {
         description: 'backup api',
       },
       {
-        url: 'http://localhost:5000/',
+        url: `http://localhost:${process.env.APP_SERVER_PORT}/`,
         description: 'dev',
       },
     ],
