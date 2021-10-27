@@ -90,6 +90,7 @@ const articleController = {
 
     articleModel.findAll(options, (err, results) => {
       if (err) return next(err)
+
       res.set('x-total-count', results.count).json({
         success: true,
         message: 'get articles',
