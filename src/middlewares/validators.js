@@ -193,6 +193,7 @@ const validators = {
     body('coordinate')
       .optional()
       .isObject()
+      .notEmpty()
       .customSanitizer((coordinate) => {
         return { x: coordinate.x, y: coordinate.y }
       }),
@@ -221,6 +222,7 @@ const validators = {
     body('coordinate')
       .optional()
       .isObject()
+      .notEmpty()
       .customSanitizer((coordinate) => {
         return { x: coordinate.x, y: coordinate.y }
       }),

@@ -1,16 +1,37 @@
 const pool = require('../db').promise()
 const { generalLogger: logger } = require('../logger')
 
-function getPaginationAndFilterSuffix(options) {
-  function appendFilterSuffix(mode = 'AND', operator = '=', injectValues, columnName) {
-    if (injectValues?.length > 0) {
-      const clause = Array(injectValues.length).fill('?').join(` ${mode} ${columnName} ${operator} `)
-      sql += ` AND (${columnName} ${operator} ${clause})`
-      values = values.concat(injectValues)
+function appendFilterSuffix(mode = 'AND', injectValues, columnName, { sql, values }) {
+  let clause = ''
+  for (let literalOperator in injectValues) {
+    if (!injectValues[literalOperator] && injectValues[literalOperator] !== 0) continue
+    let operator
+    switch (literalOperator) {
+      case 'like':
+        operator = 'LIKE'
+        break
+      case 'eq':
+        operator = '='
+        break
+      case 'gt':
+        operator = '>'
+        break
+      case 'lt':
+        operator = '<'
+        break
+      default:
+        return
     }
-    return { sql, values }
+    if (clause.length > 0) clause += ` ${mode} `
+    clause += `${columnName} ${operator} `
+    clause += Array(injectValues[literalOperator].length).fill('?').join(` ${mode} ${columnName} ${operator} `)
+    values = values.concat(injectValues[literalOperator])
   }
+  if (clause.length > 0) sql += ` AND (${clause})`
+  return { sql, values }
+}
 
+function getPaginationAndFilterSuffix(options) {
   let sql = ''
   let values = []
   const { cursor, offset, difficult, altitude, length, location, limit, search } = options
@@ -22,29 +43,22 @@ function getPaginationAndFilterSuffix(options) {
     values.push(offset)
   }
 
-  appendFilterSuffix('OR', '=', difficult, 'difficulty')
-  appendFilterSuffix(
-    'OR',
-    'LIKE',
-    location?.map((loc) => `%${loc}%`),
-    'location'
-  )
-  appendFilterSuffix('AND', '>', altitude?.gt, 'altitude')
-  appendFilterSuffix('AND', '<', altitude?.lt, 'altitude')
-  appendFilterSuffix('AND', '>', length?.gt, 'length')
-  appendFilterSuffix('AND', '<', length?.lt, 'length')
+  let suffix = appendFilterSuffix('OR', { eq: difficult }, 'difficulty', { sql, values })
+  suffix = appendFilterSuffix('OR', { like: location?.map((loc) => `%${loc}%`) }, 'location', suffix)
+  suffix = appendFilterSuffix('OR', altitude, 'altitude', suffix)
+  suffix = appendFilterSuffix('OR', length, 'length', suffix)
 
   if (search) {
-    sql += ' AND title LIKE ?'
-    values.push(`%${search}%`)
+    suffix.sql += ' AND title LIKE ?'
+    suffix.values.push(`%${search}%`)
   }
 
   if (limit) {
-    sql += ' LIMIT ?'
-    values.push(limit)
+    suffix.sql += ' LIMIT ?'
+    suffix.values.push(limit)
   }
 
-  return { sql, values }
+  return suffix
 }
 
 const trailModel = {
@@ -59,12 +73,16 @@ const trailModel = {
     for (prop of ['limit', 'offset', 'cursor']) {
       delete options[prop]
     }
+
+    delete options.cursor
+    delete options.limit
+    delete options.offset
     const countSuffix = getPaginationAndFilterSuffix(options)
     const countSql = `SELECT COUNT(*) AS count FROM (${sql + countSuffix.sql}) AS tmp;`
     const countValues = values.concat(countSuffix.values)
 
     try {
-      logger.debug(sql)
+      logger.debug(findAllSql)
       const [rows, findAllFields] = await pool.query(findAllSql, findAllValues)
 
       logger.debug(countSql)
@@ -104,7 +122,7 @@ const trailModel = {
         Number(trailInfo.coordinateX),
         Number(trailInfo.coordinateY),
         trailInfo.cover_picture_url,
-        trailInfo.map_picture_url
+        trailInfo.map_picture_url,
       ])
       return rows
     } catch (err) {
@@ -132,7 +150,7 @@ const trailModel = {
         Number(trailInfo.coordinateY),
         trailInfo.cover_picture_url,
         trailInfo.map_picture_url,
-        id
+        id,
       ])
       return rows
     } catch (err) {

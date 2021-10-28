@@ -126,18 +126,18 @@ const userController = {
     const { refreshToken } = req.signedCookies
     try {
       const sessionInfo = (await refreshTokenModel.findByToken(refreshToken))[0]
-      if (!sessionInfo || sessionInfo.expiredAt < new Date(Date.now())) return res.status(401).json(INVALID_REFRESH_TOKEN)
+      if (!refreshToken || !sessionInfo || sessionInfo.expiredAt < new Date(Date.now())) return res.status(401).json(INVALID_REFRESH_TOKEN)
 
       const { user_id: userId } = sessionInfo
-      const expiredAt = getCookieExpireTime()
-      const cookieOptions = getCookieOptions(expiredAt)
       let newRefreshToken = await generateRefreshToken()
 
-      while ((await refreshTokenModel.findByToken(refreshToken)).length > 0) {
-        refreshToken = await generateRefreshToken()
+      while ((await refreshTokenModel.findByToken(newRefreshToken)).length > 0) {
+        newRefreshToken = await generateRefreshToken()
       }
 
       await refreshTokenModel.clear(refreshToken)
+      const expiredAt = getCookieExpireTime()
+      const cookieOptions = getCookieOptions(expiredAt)
       await refreshTokenModel.save(userId, newRefreshToken, expiredAt)
 
       const user = (await userModel.find({ where: { user_id: userId } }))[0]
