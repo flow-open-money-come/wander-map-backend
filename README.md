@@ -61,6 +61,8 @@
 
 > 測試連結：https://api.wandermap.tw/api/v1/test
 
+![swagger demo](./swagger_demo.gif)
+
 利用 swagger 產生符合 OpenAPI 規範的文件，並建立測試頁面。方便開發者快速了解、測試 API。
 
 ### log
@@ -223,7 +225,7 @@
  . ＿＿ ∧ ∧             
 ／＼   (*ﾟ∀ﾟ)＼      專案雛形發想、wireframe 繪製、
 ＼／|￣￣∪ ∪￣|＼   前端（管理員後台、單一步道頁面）、
- ＼|   Dylan  |     後端（trail API、article API、部署）
+ ＼|   Dylan  |     後端（trail API、article API、swagger 文件、部署）
      ￣￣￣￣￣
 ```
 
@@ -232,7 +234,7 @@
  . ＿＿ ∧ ∧             
 ／＼   (*ﾟ∀ﾟ)＼      專案構想、資料庫規劃
 ＼／|￣￣∪ ∪￣|＼   後端（user API、article API、trail API、
- ＼|   Torai  |     權限控制、logger、API 文件、部署）
+ ＼|   Torai  |     權限控制、logger、API 文件、swagger 文件、部署）
      ￣￣￣￣￣
 ```
 
