@@ -62,7 +62,7 @@ function combineTagAndPaginationSuffix(originQuery = { sql: '', values: [] }, ta
   }
 
   if (paginationSuffix && /GROUP BY A.article_id/.test(paginationSuffix.sql)) {
-    originQuery.sql = originQuery.sql.replace('GROUP BY A.article_id', '')
+    originQuery.sql = originQuery.sql.replace(/GROUP BY A.article_id(?!\W*\))/, '')
     if (tagSuffix) {
       originQuery.sql = originQuery.sql.replace(`HAVING GROUP_CONCAT(T.tag_name SEPARATOR ', ') REGEXP ?`, '')
       const tagValue = originQuery.values.pop()
@@ -140,14 +140,13 @@ const articleModel = {
       values.push(`%${options?.search}%`)
     }
 
-    sql += ` GROUP BY ARTICLEwithTAGS.article_id`
-
     const tagSuffix = getTagSearchingSuffix(options.tag)
 
     getArticleCount(sql, values, tagSuffix, (err, articleCount) => {
       if (err) return cb(err)
 
       const paginationSuffix = getArticlePaginationSuffix(options)
+      paginationSuffix.sql = paginationSuffix.sql.replace('GROUP BY A.article_id', '')
       const query = combineTagAndPaginationSuffix({ sql, values }, tagSuffix, paginationSuffix)
 
       sql = query.sql.replace(`GROUP_CONCAT(T.tag_name SEPARATOR ', ')`, `ARTICLEwithTAGS.tag_names`) + ';'
@@ -155,8 +154,7 @@ const articleModel = {
 
       logger.debug(sql)
       db.query(sql, values, (err, result) => {
-        if (err) cb(err)
-
+        if (err) return cb(err)
         cb(null, { result, count: articleCount[0].count })
       })
     })

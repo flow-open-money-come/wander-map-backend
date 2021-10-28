@@ -31,13 +31,13 @@
 
 ## 主要功能
 
-作為 wander-map 的後端專案。使用 express 作為 web 框架、MySQL 儲存資料。
+作為 wandermap 的後端專案。使用 express 作為 web 框架、MySQL 儲存資料。
 
 ### 使用者 API
 
-使用者註冊登入後，會得到 member 身分。即有權限可以對心得、步道做按讚、收藏的動作。而管理員（admin）可以改動其他會員的權限、查看所有使用者資料。會員身分改為停權（suspended）後，能做的操作與未註冊者無異。
+使用者註冊登入後，會得到 member 身分。即有權限可以對心得、步道做按讚、收藏的動作。而管理員 (admin) 可以改動其他會員的權限、查看所有使用者資料。會員身分改為停權 (suspended) 後，能做的操作與未註冊者無異。
 
-使用者底下有自己的 todo list，只有本人和管理員看得到能做 CRUD。希望提供使用者在行前準備時，有自己建立的清單可以清點裝備。
+使用者底下有自己的 todo list，只有本人和管理員看得到、能做 CRUD。提供使用者在行前準備時，能有自己的清單可以清點裝備與提醒事項。
 
 ### 步道 API
 
@@ -51,7 +51,7 @@
 
 發布文章時可填寫 tags 欄位，在取得所有心得時可針對特定 tag 做搜尋。提供 cursor、offset/limit 兩種分頁功能，在回傳的 http header 帶有 x-total-count 表示此搜尋條件下的資料總筆數，使前端能自製分頁。
 
-### JWT & Session/cookie
+### JWT & Session/Cookie
 
 登入成功時時產生 JWT token，方便前端 react app 取得使用者資料，減少與伺服器連線次數。過期時間較短，預設為 1 小時。
 
@@ -102,9 +102,9 @@
 5. `$ sudo ln -s /snap/bin/certbot /usr/bin/certbot`：確保可以執行 `$ certbot` 指令。
 6. `$ cd <path_to_project_directory>` 進入專案根目錄，創資料夾 `$ mkdir ./src/public`。
 7. `$ npm run start` 或 `$ npm run dev` 把伺服器跑起來。
-8. `$ sudo certbot certonly --webroot`：用 certbot 申請憑證。接下來有一系列問答，根據需求填入值，可參考 [Will 保哥的文章](https://blog.miniasp.com/post/2021/05/09/Create-SSL-TLS-certificates-from-LetsEncrypt-using-Certbot-2)。在 `Input the webroot for www.your-domain.com.tw:` 這個問題填入 `<path_to_project_directory>/src/public`。
-9. 將金鑰與憑證的路徑填入 `.env` 檔案。範例為 `SSL_KEY=/etc/letsencrypt/live/www.your-domain.com.tw/privkey.pem`、`SSL_CERTIFICATE=/etc/letsencrypt/live/www.your-domain.com.tw/fullchain.pem`。
-10. `$ sudo certbot renew --webroot --dry-run`，確認排程自動更新。
+8. `$ sudo certbot certonly --webroot`：用 certbot 申請憑證。接下來有一系列問答，根據需求填入值，可參考 [Will 保哥的文章](https://blog.miniasp.com/post/2021/05/09/Create-SSL-TLS-certificates-from-LetsEncrypt-using-Certbot-2)。在 `Input the webroot for <www.your-domain.com.tw>:` 這個問題填入 `<path_to_project_directory>/src/public`。
+9. 將金鑰與憑證的路徑填入 `.env` 檔案。範例為 `SSL_KEY=/etc/letsencrypt/live/<www.your-domain.com.tw>/privkey.pem`、`SSL_CERTIFICATE=/etc/letsencrypt/live/<www.your-domain.com.tw>/fullchain.pem`。
+10. `$ sudo certbot renew --webroot --dry-run`，確認排程能夠自動更新憑證。
 
 ### Docker 部署 (coming soon)
 
@@ -201,11 +201,11 @@
 
 |其他|敘述|
 |:--:|:--:|
-|AWS EC2|後端專案部署|
+|AWS EC2|後端專案部署的平台|
 |prettier|自動排版|
 |pm2|daemon process manager |
 |certbot|申請 SSL 憑證|
-|~~docker~~|~~部署~~|
+|~~docker~~|~~部署工具~~|
 
 ## Author
 
