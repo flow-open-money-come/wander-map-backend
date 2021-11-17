@@ -5,6 +5,8 @@
 
 > _Wondering where to go? [Wandermap](https://wandermap.netlify.app)!_
 
+☞ [介紹影片點這邊](https://www.youtube.com/watch?v=zMnWJXnUKdg&feature=youtu.be&ab_channel=cmt)
+
 ## 專案簡介
 
 提供戶外行程路線地點的檢視以及記錄心得行程的開放論壇平台。其中又以 [健行筆記](https://hiking.biji.co/) 與 [臺灣山林悠遊網](https://recreation.forest.gov.tw/) 的部份頁面作為功能與頁面的參考。再以地圖搜尋為特色，主打此功能增加差異性，改善使用者體驗。
@@ -32,6 +34,12 @@
 ## 主要功能
 
 作為 wandermap 的後端專案。使用 express 作為 web 框架、MySQL 儲存資料。
+
+### 資料庫設計
+
+進行第三正規化，以主鍵與外鍵解決遞移相依的關係。設定 ON DELETE/UPDATE CASCADE，在參考的外鍵變動時，自動進行修改。
+
+設定索引與利用 EXPLAIN 語句檢查 SQL 執行效率並改進。未使用 prepared statement，但使用的套件會將字串做跳脫，自行嘗試進行 SQL injection 未果。
 
 ### 使用者 API
 
