@@ -35,6 +35,12 @@
 
 作為 wandermap 的後端專案。使用 express 作為 web 框架、MySQL 儲存資料。
 
+### 資料庫設計
+
+進行第三正規化，以主鍵與外鍵解決遞移相依的關係。設定 ON DELETE/UPDATE CASCADE，在參考的外鍵變動時，自動進行修改。
+
+設定索引與利用 EXPLAIN 語句檢查 SQL 執行效率並改進。未使用 prepared statement，但使用的套件會將字串做跳脫，自行嘗試進行 SQL injection 未果。
+
 ### 使用者 API
 
 使用者註冊登入後，會得到 member 身分。即有權限可以對心得、步道做按讚、收藏的動作。而管理員 (admin) 可以改動其他會員的權限、查看所有使用者資料。會員身分改為停權 (suspended) 後，能做的操作與未註冊者無異。
