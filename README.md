@@ -65,6 +65,8 @@
 
 同時將產生 refresh token，以 cookie 形式儲存在瀏覽器。作為 JWT token 過期時，使用者不需再次登入即可取得新 JWT 的機制。有設定 httpOnly 等屬性以提高安全性。過期時間較長，預設為 1 個月。
 
+若因故，後端想要讓使用者重新登入，只要主動使 session 失效，前端在 JWT 過期就就必須重新登入。
+
 ### API 測試
 
 > 測試連結：https://api.wandermap.tw/api/v1/test
